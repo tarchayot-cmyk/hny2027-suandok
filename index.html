@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Christmas Wish Tree · HNY2027 Suandok</title>
+<meta name="theme-color" content="#13254a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, cute Christmas storybook; short kind Thai copy
+   IDEA: a snowy village night with one big tree where paper notes hang in stockings
+   PICTURE: the tree scene itself, full width, stockings are the buttons
+   COLOUR and TYPE: night blue field, pine green, Christmas red accent, warm gold light, paper cream; Mali for notes, Plex Sans Thai for UI
+   LAYOUT: phone column (max 520px): sign header, scene, two big actions, counter, tab bar; bottom sheets for every flow */
+:root{color-scheme:dark;--night:#13254a;--night2:#24457a;--pine:#1f5e3b;--red:#c8312f;--gold:#f0bd4f;--wood:#8a5a34;--paper:#fbf4e4;--paper2:#f3e6c9;--ink:#2b2118;--snow:#f4f7fb;--muted:#6b5a48}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;background:#0b1630;color:var(--snow);font:16px/1.55 "IBM Plex Sans Thai",system-ui,sans-serif;overflow-x:clip}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.app{max-width:520px;margin:0 auto;min-height:100vh;background:linear-gradient(var(--night),#1b3563 60%,#0e1c3a);position:relative;padding-bottom:84px}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(14,28,58,.82);backdrop-filter:blur(8px)}
+.sign{flex:1;display:flex;align-items:center;gap:8px;font:700 20px/1.1 Mali,cursive;color:#fff}
+.sign svg{flex:none}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;position:relative;background:rgba(255,255,255,.08)}
+.badge{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font:600 11px/18px "IBM Plex Sans Thai";text-align:center;padding:0 4px}
+.hero{position:absolute;left:16px;top:66px;z-index:3;pointer-events:none;max-width:58%}
+.hero p{margin:0;font:600 15px/1.35 Mali,cursive;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.hero small{display:block;margin-top:4px;font-size:12px;color:#c9d6ee}
+.scene{position:relative;margin-top:-56px}
+.scene svg{display:block;width:100%;height:auto}
+.sock{transform-box:fill-box;transform-origin:50% 0;animation:swing 3.2s ease-in-out infinite alternate;cursor:pointer}
+.sock:hover use,.sock:focus use{filter:brightness(1.12)}
+@keyframes swing{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+.drop{animation:drop 1.4s cubic-bezier(.3,1.4,.5,1) both,swing 3.2s 1.4s ease-in-out infinite alternate}
+@keyframes drop{0%{transform:translateY(-320px) scale(1.8);opacity:0}40%{opacity:1}100%{transform:none}}
+.light{animation:tw 1.8s ease-in-out infinite alternate}
+@keyframes tw{from{opacity:.35}to{opacity:1}}
+.spark{animation:spark 1s ease-out forwards}
+@keyframes spark{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.glow{animation:glow 1.6s ease-in-out infinite alternate}
+@keyframes glow{from{opacity:.35}to{opacity:.95}}
+.snowlayer{position:fixed;inset:0;pointer-events:none;z-index:15;overflow:hidden}
+.flake{position:absolute;top:-10px;width:6px;height:6px;border-radius:50%;background:#fff;opacity:.8;animation:fall linear infinite}
+@keyframes fall{to{transform:translate(30px,105vh)}}
+.calm .sock,.calm .light,.calm .glow,.calm .flake{animation:none}
+.calm .flake{display:none}
+.calm .drop{animation:none}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px;margin-top:-34px;position:relative;z-index:4}
+.big{min-height:56px;border-radius:16px;font:700 17px/1.2 Mali,cursive;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+.big.red{background:var(--red);color:#fff}.big.green{background:var(--pine);color:#fff}
+.big:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.counter{margin:16px 14px 0;padding:14px;border-radius:16px;background:var(--paper);color:var(--ink);display:grid;grid-template-columns:repeat(3,1fr);text-align:center}
+.counter b{display:block;font:700 26px/1.1 Mali,cursive;color:var(--red)}
+.counter span{font-size:13px;color:var(--muted)}
+.counter .ttl{grid-column:1/-1;font:600 14px Mali,cursive;margin-bottom:6px;color:var(--pine)}
+.note-small{margin:10px 16px 0;font-size:13px;color:#a9b8d6}
+.view{display:none}.view.on{display:block}
+.page{padding:16px 14px}
+.page h2{font:700 24px/1.2 Mali,cursive;margin:4px 0 4px}
+.page .sub{color:#c9d6ee;margin:0 0 12px;font-size:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.chip{flex:none;min-height:40px;padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.1);font-size:14px;white-space:nowrap}
+.chip.on{background:var(--gold);color:#3a2708;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.card{background:var(--paper);color:var(--ink);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;text-align:left}
+.card svg{width:44px;height:56px}
+.card .msg{font:600 15px/1.35 Mali,cursive}
+.meta{font-size:13px;color:var(--muted)}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;background:var(--paper2);color:var(--ink);margin:2px 4px 0 0}
+.pill.ok{background:#d8ecd9;color:#1d5130}.pill.wait{background:#f7e3b4;color:#6a4a07}
+.list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.row{background:var(--paper);color:var(--ink);border-radius:16px;padding:12px;display:flex;gap:12px;align-items:flex-start}
+.row svg{flex:none;width:40px;height:52px}
+.row .grow{flex:1}
+.empty{padding:20px;border:2px dashed rgba(255,255,255,.25);border-radius:16px;text-align:center;color:#c9d6ee;font-size:14px}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;display:grid;grid-template-columns:repeat(4,1fr);background:#0e1c3a;border-top:1px solid rgba(255,255,255,.1);z-index:25;padding-bottom:env(safe-area-inset-bottom)}
+.tab{min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;color:#9fb0d0}
+.tab.on{color:var(--gold)}
+.tab.make span:first-child{width:44px;height:44px;border-radius:22px;background:var(--red);display:grid;place-items:center;color:#fff;margin-top:-18px;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.backdrop{position:fixed;inset:0;background:rgba(5,10,25,.55);z-index:30;opacity:0;pointer-events:none;transition:opacity .2s}
+.backdrop.on{opacity:1;pointer-events:auto}
+.sheet,.toast,.counter,.card,.row{color-scheme:light}
+.sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:520px;max-height:90vh;overflow:auto;transform:translate(-50%,105%);transition:transform .28s ease;z-index:31;color:var(--ink);background:radial-gradient(circle at 20% 10%,#fffaf0,transparent 60%),var(--paper);border-radius:22px 22px 0 0;padding:10px 18px 28px}
+.sheet.on{transform:translate(-50%,0)}
+.grab{width:44px;height:5px;border-radius:3px;background:#d9c8a6;margin:0 auto 10px}
+.sheet h3{font:700 22px/1.25 Mali,cursive;margin:6px 0 8px;color:var(--pine)}
+.sheet p{margin:6px 0}
+.paper-note{background:#fff;border-radius:6px 18px 6px 18px;padding:14px 16px;box-shadow:0 2px 0 #e6d6b5;font:600 19px/1.45 Mali,cursive;margin:10px 0;transform:rotate(-1deg)}
+.btn{width:100%;min-height:52px;border-radius:14px;font:700 17px Mali,cursive;margin-top:10px}
+.btn.red{background:var(--red);color:#fff}.btn.green{background:var(--pine);color:#fff}.btn.ghost{background:var(--paper2);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.who{display:grid;gap:6px;background:#fff;border-radius:14px;padding:12px 14px;margin:10px 0;font-size:17px}
+.who b{font-weight:600}
+.steps{list-style:none;padding:0;margin:10px 0;display:grid;gap:8px}
+.steps label{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 12px;min-height:48px}
+.steps input{width:22px;height:22px;accent-color:var(--pine)}
+.types{display:grid;gap:10px;margin:10px 0}
+.type{display:flex;gap:12px;align-items:center;text-align:left;background:#fff;border:2px solid transparent;border-radius:14px;padding:12px}
+.type.on{border-color:var(--red)}
+.type:disabled{opacity:.5}
+.type b{display:block;font:700 17px Mali,cursive}
+.type span{font-size:13px;color:var(--muted)}
+.type .em{font-size:28px}
+textarea{width:100%;min-height:110px;border-radius:12px;border:2px solid var(--paper2);padding:10px 12px;font:600 17px/1.45 Mali,cursive;color:var(--ink);background:#fff;resize:vertical}
+.count{text-align:right;font-size:13px;color:var(--muted)}
+.err{color:var(--red);font-size:14px;min-height:20px}
+.lbl{font-weight:600;margin:12px 0 6px;font-size:15px}
+.sheet .chip{background:#fff;color:var(--ink);border:1px solid var(--paper2)}
+.sheet .chip.on{background:var(--red);color:#fff;border-color:var(--red)}
+.hint{font-size:13px;color:var(--muted)}
+.picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.pick{background:#fff;border:2px solid transparent;border-radius:12px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted)}
+.pick svg{width:44px;height:56px}
+.pick.on{border-color:var(--red);color:var(--ink)}
+.dots{display:flex;gap:6px;justify-content:center;margin:2px 0 6px}
+.dots i{width:8px;height:8px;border-radius:4px;background:#e2d3b3}.dots i.on{background:var(--red);width:20px}
+.preview{display:flex;gap:14px;align-items:center}
+.preview svg{width:84px;height:106px;flex:none}
+.bless{background:#fff;border-radius:12px;padding:8px 12px;margin:6px 0;font:600 15px Mali,cursive}
+.bless small{display:block;font:400 12px "IBM Plex Sans Thai";color:var(--muted)}
+.notif{background:#fff;border-radius:12px;padding:10px 12px;margin:8px 0}
+.notif.unread{border-left:4px solid var(--red)}
+.notif b{display:block}
+.report{display:block;margin:14px auto 0;font-size:13px;color:var(--muted);text-decoration:underline;min-height:40px}
+.cele{position:fixed;inset:0;z-index:40;display:none;place-items:center;background:rgba(10,18,40,.7);text-align:center}
+.cele.on{display:grid}
+.cele .seq{font-size:64px;height:80px;position:relative;width:120px;margin:0 auto}
+.cele .seq span{position:absolute;inset:0;opacity:0;animation:seq 2.4s ease-out forwards}
+.cele .seq span:nth-child(2){animation-delay:.7s}.cele .seq span:nth-child(3){animation-delay:1.4s;animation-fill-mode:forwards;animation-name:seqlast}
+@keyframes seq{0%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(1.1)}30%{opacity:0;transform:scale(1)}100%{opacity:0}}
+@keyframes seqlast{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.2)}40%,100%{opacity:1;transform:scale(1)}}
+.calm .cele .seq span{animation:none;opacity:0}.calm .cele .seq span:nth-child(3){opacity:1}
+.cele h2{font:700 30px Mali,cursive;margin:8px 0 4px;color:#fff}
+.cele p{color:#dfe7f5;margin:0 24px 16px}
+.cele .btn{max-width:260px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#fff;color:var(--ink);padding:10px 16px;border-radius:12px;z-index:45;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.3);display:none;max-width:90%}
+.toast.on{display:block}
+.who-me{font-size:12px;color:#c9d6ee;text-align:right;line-height:1.2}
+.gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:linear-gradient(rgba(19,37,74,.55),rgba(19,37,74,.85)),url(bg-village.webp) center/cover}
+.gate.off{display:none}
+.gate .box{width:100%;max-width:380px;background:var(--paper);color:var(--ink);border-radius:22px;padding:22px 20px;box-shadow:0 20px 50px rgba(0,0,0,.4);color-scheme:light}
+.gate h1{font:700 26px/1.15 Mali,cursive;margin:0 0 4px;color:var(--pine);text-align:center}
+.gate .tag{text-align:center;margin:0 0 14px;color:var(--muted);font-size:14px}
+.gate label{display:block;font-weight:600;font-size:15px;margin-top:12px}
+.gate input,.gate select{display:block;width:100%;margin-top:6px;min-height:48px;border-radius:12px;border:2px solid var(--paper2);padding:8px 12px;font:16px "IBM Plex Sans Thai",sans-serif;background:#fff;color:var(--ink)}
+.gate input.pin{letter-spacing:.6em;font-size:22px;text-align:center}
+.gate .msg{min-height:22px;margin-top:10px;font-size:14px;color:var(--red)}
+.gate .msg.info{color:var(--pine)}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid rgba(0,0,0,.15);border-top-color:var(--red);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.profile{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.08);border-radius:14px;padding:10px 14px;margin-bottom:14px}
+@media(max-width:400px){.who-me{display:none}.sign{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.sock,.light,.glow,.flake,.drop{animation:none}.flake{display:none}}
+</style>
+</head>
+<body>
+<!-- Stocking sprite: 8 reusable designs, each a 48x60 symbol -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<pattern id="candyStripe" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="10" height="10" fill="#fff"/><rect width="5" height="10" fill="#d9363e"/></pattern>
+<pattern id="snowDots" width="9" height="9" patternUnits="userSpaceOnUse"><rect width="9" height="9" fill="#3d7cc9"/><circle cx="2" cy="2" r="1.3" fill="#e8f2ff"/><circle cx="6.5" cy="6.5" r="1" fill="#e8f2ff"/></pattern>
+<radialGradient id="glowG"><stop offset="0" stop-color="#ffd76a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd76a" stop-opacity="0"/></radialGradient>
+<linearGradient id="pine" x1="0" x2="1"><stop offset="0" stop-color="#2e7a4c"/><stop offset=".55" stop-color="#1f5e3b"/><stop offset="1" stop-color="#174a2e"/></linearGradient>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#13254a"/><stop offset=".7" stop-color="#2a4c82"/><stop offset="1" stop-color="#4a6fa8"/></linearGradient>
+</defs>
+</svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="sprite"></defs></svg>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="sign">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M15 2 L27 26 H3 Z" fill="#2e7a4c"/><path d="M15 2 L23 18 H7 Z" fill="#3b8f5c"/><rect x="12" y="26" width="6" height="6" fill="#8a5a34"/><circle cx="15" cy="3" r="3" fill="#f0bd4f"/><circle cx="11" cy="18" r="1.8" fill="#c8312f"/><circle cx="19" cy="22" r="1.8" fill="#f0bd4f"/></svg>
+      <span>Christmas Wish Tree</span>
+    </div>
+    <div class="who-me" id="whoMe"></div>
+    <button class="icon-btn" id="calmBtn" aria-label="เปิด/ปิดหิมะและแอนิเมชัน" title="เปิด/ปิดแอนิเมชัน">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M4 7l16 10M20 7L4 17M9 3l3 3 3-3M9 21l3-3 3 3"/></svg>
+    </button>
+    <button class="icon-btn" id="bellBtn" aria-label="การแจ้งเตือน">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span class="badge" id="badge"></span>
+    </button>
+  </header>
+
+  <section class="view on" id="v-tree">
+    <div class="hero"><p>Make a Wish.<br>Become a Santa.<br>Spread the Joy.</p><small>แตะถุงเท้าเพื่ออ่าน Wish</small></div>
+    <div class="scene" id="scene"></div>
+    <div class="actions">
+      <button class="big red" data-go="make">🎁 Make a Wish</button>
+      <button class="big green" data-go="explore">🎅 Be a Santa</button>
+    </div>
+    <div class="counter" id="counter"></div>
+    <p class="note-small">แขวน Wish ได้ถึง 25 ธ.ค. · ส่งมอบของขวัญได้ถึง 31 ธ.ค. 2569</p>
+  </section>
+
+  <section class="view" id="v-explore">
+    <div class="page">
+      <h2>🎅 Be a Santa</h2>
+      <p class="sub">เลือก Wish ที่อยากช่วย ชื่อผู้ขอจะเปิดเผยหลังคุณกด Become Santa</p>
+      <div class="chips" id="filters"></div>
+      <div class="grid" id="exploreGrid"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-me">
+    <div class="page">
+      <div class="profile"><div id="meLine"></div><button class="chip" id="logoutBtn">ออกจากระบบ</button></div>
+      <h2>🎁 My Wishes</h2>
+      <div class="list" id="myWishes"></div>
+      <h2 style="margin-top:22px">🎅 My Santa Missions</h2>
+      <div class="list" id="myMissions"></div>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="เมนูหลัก">
+  <button class="tab on" data-tab="tree"><span>🎄</span><span>ต้นไม้</span></button>
+  <button class="tab make" data-go="make"><span>＋</span><span>ขอพร</span></button>
+  <button class="tab" data-tab="explore"><span>🎅</span><span>เป็น Santa</span></button>
+  <button class="tab" data-tab="me"><span>🧦</span><span>ของฉัน</span></button>
+</nav>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="cele" id="cele"><div><div class="seq" id="celeSeq"></div><h2 id="celeT"></h2><p id="celeM"></p><button class="btn red" id="celeOk">เยี่ยมเลย ❤️</button></div></div>
+<div class="toast" id="toast"></div>
+<div class="snowlayer" id="snow"></div>
+<div class="gate" id="gate"><div class="box">
+  <h1>🎄 Christmas Wish Tree</h1>
+  <p class="tag">Make a Wish. Become a Santa. Spread the Joy.</p>
+  <div id="gLoading" style="text-align:center;padding:16px 0"><span class="spin"></span> กำลังเตรียมต้นไม้…</div>
+  <form id="gForm" hidden autocomplete="off">
+    <label>ชื่อเล่น<input id="gNick" maxlength="30" placeholder="เช่น ต้น, พี่แอน" required></label>
+    <label>ห้องยา / หน่วยงาน<select id="gRoom" required></select></label>
+    <label>PIN 4 หลัก<input id="gPin" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+    <div id="gConfirm" hidden><label>ยืนยัน PIN อีกครั้ง<input id="gPin2" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4"></label></div>
+    <div class="msg" id="gMsg"></div>
+    <button class="btn red" id="gGo" type="submit">เข้าสู่ต้นไม้ 🎄</button>
+    <p class="hint" style="text-align:center;margin-top:12px">ครั้งแรกให้ตั้ง PIN เอง · ลืม PIN ติดต่อ Admin</p>
+  </form>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+{
+const SB_URL='https://msxbwdlnwdvcmdgcfrtf.supabase.co',SB_KEY='sb_publishable_SdnxTnFw7fjl8UH5mEWmEw_xqpSYS5S';
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+
+/* ---------- Stockings (SVG sprite) ---------- */
+const STOCKINGS=[
+ {id:1,name:'Red Christmas'},{id:2,name:'Green Christmas'},{id:3,name:'Blue Snow'},{id:4,name:'Pink Ribbon'},
+ {id:5,name:'Snowman'},{id:6,name:'Reindeer'},{id:7,name:'Christmas Tree'},{id:8,name:'Candy'}];
+const BODY='M11 15V38Q11 55 27 55H37Q46 55 46 46Q46 38 37 37H33V15Z';
+const TOE='M38 37.3Q46 38.4 46 46Q46 55 37 55Q41 46 38 37.3Z';
+function sockSymbol(id,fill,cuff,deco,toe){
+  return `<symbol id="st-${id}" viewBox="0 0 48 60"><path d="M19 7Q22 0 25 7" fill="none" stroke="#f0bd4f" stroke-width="2"/><path d="${BODY}" fill="${fill}" stroke="rgba(0,0,0,.18)" stroke-width="1"/><path d="${TOE}" fill="${toe}"/>${deco}<rect x="7" y="6" width="30" height="12" rx="5" fill="${cuff}" stroke="rgba(0,0,0,.12)"/></symbol>`;
+}
+const flake='<g stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M22 26v14M15.9 29.5l12.2 7M15.9 36.5l12.2-7"/></g>';
+document.getElementById('sprite').innerHTML=[
+ sockSymbol(1,'#c8312f','#fffaf3',flake,'#a3262a'),
+ sockSymbol(2,'#2f7a4b','#fffaf3','<ellipse cx="18" cy="31" rx="6" ry="3" fill="#7cc48a" transform="rotate(-30 18 31)"/><ellipse cx="26" cy="31" rx="6" ry="3" fill="#7cc48a" transform="rotate(30 26 31)"/><circle cx="22" cy="34" r="2.4" fill="#e23b3b"/><circle cx="19.5" cy="36" r="2" fill="#e23b3b"/>','#256640'),
+ sockSymbol(3,'url(#snowDots)','#e8f2ff','<circle cx="23" cy="44" r="4" fill="#fff" opacity=".9"/>','#2e64a8'),
+ sockSymbol(4,'#f08fb0','#fffaf3','<path d="M22 31l-7-4v8zM22 31l7-4v8z" fill="#d6336c"/><circle cx="22" cy="31" r="2.2" fill="#b82457"/><path d="M21 33l-3 7M23 33l3 7" stroke="#d6336c" stroke-width="2"/>','#e2779c'),
+ sockSymbol(5,'#e3f0fa','#c8312f','<circle cx="22" cy="40" r="7" fill="#fff" stroke="#c7d8e6"/><circle cx="22" cy="29" r="5" fill="#fff" stroke="#c7d8e6"/><circle cx="20.3" cy="28" r=".9" fill="#333"/><circle cx="23.7" cy="28" r=".9" fill="#333"/><path d="M22 29.5l3 1-3 .6z" fill="#f08a24"/><circle cx="22" cy="38" r=".9" fill="#333"/><circle cx="22" cy="41.5" r=".9" fill="#333"/>','#cbe0f0'),
+ sockSymbol(6,'#9a6a43','#f4e8d4','<path d="M18 26l-3-5M15 23l-2 0M26 26l3-5M29 23l2 0" stroke="#5a3a1e" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="22" cy="32" rx="6" ry="7" fill="#c08a5b"/><circle cx="19.5" cy="30" r="1" fill="#2b1a0e"/><circle cx="24.5" cy="30" r="1" fill="#2b1a0e"/><circle cx="22" cy="36" r="2.4" fill="#e23b3b"/>','#7f5434'),
+ sockSymbol(7,'#f4e8d4','#2f7a4b','<path d="M22 24l7 14h-14z" fill="#2f7a4b"/><path d="M22 29l5 10h-10z" fill="#3b8f5c"/><rect x="20.5" y="39" width="3" height="3" fill="#8a5a34"/><circle cx="22" cy="23.5" r="1.8" fill="#f0bd4f"/><circle cx="20" cy="34" r="1" fill="#e23b3b"/><circle cx="24.5" cy="36" r="1" fill="#f0bd4f"/>','#e6d3b3'),
+ sockSymbol(8,'url(#candyStripe)','#2f7a4b','','#f3d4d6')
+].join('');
+const use=(st,w,h)=>`<svg viewBox="0 0 48 60" width="${w}" height="${h}" aria-hidden="true"><use href="#st-${st}"/></svg>`;
+
+const TYPES={gift:{em:'🎁',name:'ของขวัญ',desc:'Santa ซื้อของจริง แล้วนำไปมอบให้ด้วยตนเอง'},card:{em:'💌',name:'การ์ดอวยพร',desc:'Santa หาการ์ดจริง เขียน แล้วนำไปมอบให้'},blessing:{em:'✨',name:'คำอวยพร',desc:'เพื่อน ๆ พิมพ์คำอวยพรให้ได้หลายคน'}};
+const CATS=['📚 Book','🧸 Toy / Cute','☕ Drinkware','🎨 Art','🍫 Snack','🎁 Surprise','❤️ Anything'];
+const BUDGETS=['Under ฿300','฿300–500','฿500–1,000','Surprise me'];
+const QUICK=['❤️ Thank you, Santa!','🎄 Merry Christmas!','🥰 ขอบคุณมากนะคะ','🎁 ถูกใจมากเลยค่ะ','✨ ขอบคุณที่ทำให้ Christmas นี้พิเศษ'];
+const QUICKB=['🎄 Merry Christmas!','✨ ขอให้ปีใหม่มีแต่เรื่องดี ๆ','💪 สุขภาพแข็งแรงนะ','🥰 ขอให้สมหวังทุกอย่าง'];
+const SLOTS=[[180,148],[218,148],[150,211],[199,211],[248,211],[132,288],[177,288],[222,288],[267,288],[107,376],[153,376],[199,376],[245,376],[291,376],[78,468],[126,468],[174,468],[222,468],[270,468],[318,468]];
+const ERR={MSG_EMPTY:'พิมพ์ข้อความก่อนนะ',MSG_TOO_LONG:'ข้อความยาวเกิน 150 ตัวอักษร',MSG_LINK:'ไม่อนุญาตให้ใส่ลิงก์',MSG_PHONE:'ไม่ต้องใส่เบอร์โทรนะ Santa หาคุณเจอจากชื่อและห้องยา',MSG_RUDE:'ลองใช้คำที่สุภาพกว่านี้นะ',
+ WISH_LIMIT:'คุณแขวน Wish ประเภทนี้ไว้แล้ว',WISHES_CLOSED:'ปิดรับ Wish ใหม่แล้ว (ถึง 25 ธ.ค.)',EVENT_CLOSED:'กิจกรรมปิดแล้ว (ถึง 31 ธ.ค.)',MISSION_LIMIT:'คุณมีภารกิจที่ยังไม่เสร็จครบ 2 ภารกิจแล้ว',
+ ALREADY_CLAIMED:'มี Santa ใจดีรับไปแล้ว ลองเลือกใบอื่นนะ',OWN_WISH:'Wish นี้เป็นของคุณเอง',CLAIM_NOT_ACTIVE:'ภารกิจนี้ไม่อยู่ในสถานะที่ทำรายการได้แล้ว',WISH_NOT_THANKABLE:'Wish นี้ขอบคุณไปแล้วหรือยังไม่มี Santa',
+ ALREADY_BLESSED:'คุณอวยพร Wish นี้ไปแล้ว',WISH_LOCKED:'Wish นี้มี Santa แล้ว แก้ไขหรือลบไม่ได้',WISH_NOT_FOUND:'ไม่พบ Wish นี้',NOT_LOGGED_IN:'กรุณาเข้าสู่ระบบอีกครั้ง',
+ NICK_TAKEN:'ชื่อนี้ในห้องนี้มีคนใช้แล้ว',PIN_FORMAT:'PIN ต้องเป็นตัวเลข 4 หลัก',NICK_INVALID:'ชื่อเล่นยาว 1–30 ตัวอักษร',ROOM_INVALID:'เลือกห้องยา/หน่วยงาน',STOCKING_INVALID:'เลือกลายถุงเท้า'};
+function errMsg(e){const m=(e&&(e.message||e.error_description))||String(e);for(const k in ERR)if(m.includes(k))return ERR[k];if(/anonymous/i.test(m))return 'ระบบยังไม่เปิดให้เข้าใช้ (Admin: เปิด Anonymous sign-ins ใน Supabase)';if(/fetch|network/i.test(m))return 'เชื่อมต่อไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';return 'เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะ';}
+async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args||{});if(error)throw error;return data;}
+
+let ME=null,W=[],MY=[],MS=[],NT=[],STATS={wishes:0,santas:0,gifts_delivered:0},PLACED={},FILTER='all',D,polling;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const byId=id=>W.find(w=>w.id===id);
+const daysSince=c=>Math.max(0,Math.floor((Date.now()-Date.parse(c))/864e5));
+const daysTxt=w=>w.days===0?'แขวนวันนี้':`แขวนมา ${w.days} วัน`;
+const mapW=r=>({id:r.id,type:r.type,msg:r.message,cat:r.category,budget:r.budget_range,st:r.stocking_id,status:r.status,days:daysSince(r.created_at),mine:r.is_mine,bc:r.blessing_count,bm:r.blessed_by_me});
+
+/* ---------- Scene ---------- */
+function star(cx,cy,r){let p='';for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;p+=(i?'L':'M')+(cx+rr*Math.cos(a)).toFixed(1)+' '+(cy+rr*Math.sin(a)).toFixed(1);}return p+'Z';}
+function sockG(w,x,y){
+ const badge=w.status!=='OPEN'&&w.type!=='blessing'?`<path d="${star(13,6,6)}" fill="#f6c443" stroke="#fff" stroke-width=".8"/>`:'';
+ const mine=w.mine?`<circle cx="0" cy="22" r="26" fill="url(#glowG)" class="glow"/>`:'';
+ const d=((w.id*29)%30)/10;
+ return `<g transform="translate(${x},${y})">${mine}<g class="sock" data-id="${w.id}" tabindex="0" role="button" aria-label="${esc(TYPES[w.type].name)}: ${esc(w.msg)}" style="animation-delay:-${d}s"><rect x="-20" y="-4" width="40" height="52" fill="transparent"/><use href="#st-${w.st}" x="-18" y="0" width="36" height="45"/>${badge}</g></g>`;
+}
+function drawScene(){
+ let socks='';
+ Object.entries(PLACED).forEach(([id,i])=>{const w=byId(+id);if(!w)return;const [x,y]=SLOTS.at(i);socks+=sockG(w,x,y);});
+ $('scene').innerHTML=`<svg viewBox="0 0 400 680" role="img" aria-label="ต้น Christmas ที่มีถุงเท้า Wish แขวนอยู่ ${Object.keys(PLACED).length} ใบ">
+ <rect width="400" height="680" fill="#f4f7fb"/><image href="bg-village.webp" x="0" y="30" width="400" height="711" preserveAspectRatio="xMidYMid slice"/>
+ <g transform="translate(0,40)">
+  <image href="tree.webp" x="20" y="30" width="360" height="540"/>
+  <image href="gifts.webp" x="118" y="503" width="164" height="110"/>
+  <g id="sockLayer">${socks}</g>
+ </g>
+ <image href="snowman.webp" x="0" y="512" width="92" height="137"/>
+ </svg>`;
+ $('scene').querySelectorAll('.sock').forEach(g=>{const id=+g.dataset.id;g.addEventListener('click',()=>openWish(id));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openWish(id);}});});
+}
+function place(){
+ const ids=new Set(W.map(w=>w.id));
+ for(const k of Object.keys(PLACED))if(!ids.has(+k))delete PLACED[k];
+ const used=new Set(Object.values(PLACED));const free=SLOTS.map((_,i)=>i).filter(i=>!used.has(i));
+ const score=w=>w.mine?0:w.status==='OPEN'?1:w.status==='THANKED'?3:2;
+ const rest=W.filter(w=>!(w.id in PLACED)).map(w=>[score(w),Math.random(),w]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>x[2]);
+ for(const w of rest){let s=free.shift();
+  if(s===undefined){if(!w.mine)break;const v=Object.entries(PLACED).find(([id])=>!byId(+id)?.mine);if(!v)break;s=v[1];delete PLACED[v[0]];}
+  PLACED[w.id]=s;}
+}
+
+/* ---------- Data ---------- */
+async function refresh(){
+ const [w,my,ms,st,me,nt]=await Promise.all([rpc('get_wishes'),rpc('get_my_wishes'),rpc('get_my_missions'),rpc('get_stats'),rpc('get_me'),
+  sb.from('notifications').select('id,type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(30)]);
+ if(!me){ME=null;return showGate();}
+ ME=me;W=(w||[]).map(mapW);MY=my||[];MS=ms||[];STATS=st||STATS;NT=(nt&&nt.data)||[];
+ place();renderAll();
+}
+function renderAll(){
+ $('whoMe').innerHTML=`${esc(ME.nickname)}<br>${esc(ME.room)}`;
+ $('meLine').innerHTML=`<b>${esc(ME.nickname)}</b> · ${esc(ME.room)}${ME.role==='admin'?' · Admin':''}`;
+ drawScene();counter();badge();renderExplore();renderMe();
+}
+function counter(){$('counter').innerHTML=`<div class="ttl">🎄 This Christmas</div><div><b>${STATS.wishes}</b><span>Wishes</span></div><div><b>${STATS.santas}</b><span>Santas</span></div><div><b>${STATS.gifts_delivered}</b><span>Gifts Delivered</span></div>`;}
+function badge(){const u=NT.filter(x=>!x.read_at).length;$('badge').textContent=u||'';$('badge').style.display=u?'block':'none';}
+
+/* ---------- Sheet & overlays ---------- */
+function openSheet(html){$('sheetBody').innerHTML=html;$('sheet').classList.add('on');$('backdrop').classList.add('on');$('sheet').scrollTop=0;}
+function closeSheet(){$('sheet').classList.remove('on');$('backdrop').classList.remove('on');}
+$('backdrop').addEventListener('click',closeSheet);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2800);}
+let celeNext=null;
+function celebrate(seq,t,m,next){$('celeSeq').innerHTML=seq.map(s=>`<span>${s}</span>`).join('');$('celeT').textContent=t;$('celeM').textContent=m;$('cele').classList.add('on');celeNext=next||null;}
+$('celeOk').addEventListener('click',()=>{$('cele').classList.remove('on');const n=celeNext;celeNext=null;if(n)n();});
+async function busy(btn,fn){if(btn){btn.disabled=true;btn._t=btn.innerHTML;btn.innerHTML='<span class="spin"></span>';}
+ try{return await fn();}catch(e){toast(errMsg(e));if(/ALREADY_CLAIMED|CLAIM_NOT_ACTIVE|WISH_LOCKED|NOT_LOGGED_IN/.test(e.message||''))refresh().catch(()=>{});throw e;}
+ finally{if(btn&&btn.isConnected){btn.disabled=false;btn.innerHTML=btn._t;}}}
+const statusPill=s=>({OPEN:'<span class="pill wait">Looking for a Santa</span>',CLAIMED:'<span class="pill ok">🎅 Santa Found!</span>',GIFTED:'<span class="pill ok">🎁 Gifted!</span>',THANKED:'<span class="pill ok">❤️ Wish fulfilled</span>'}[s]);
+function blessHtml(list){return list.length?list.map(b=>`<div class="bless">${esc(b.message)}<small>${esc(b.sender||'ไม่ระบุชื่อ')}</small></div>`).join(''):'<p class="hint">ยังไม่มีใครอวยพร</p>';}
+
+/* ---------- Validation (server checks again) ---------- */
+function check(v){if(!v)return ERR.MSG_EMPTY;if(v.length>150)return ERR.MSG_TOO_LONG;
+ if(/(https?:\/\/|www\.|line\.me|bit\.ly|\.(com|net|org|co|me|ly|io|th)(\/|\s|$))/i.test(v))return ERR.MSG_LINK;
+ if(/(\d[\s-]?){9,}/.test(v))return ERR.MSG_PHONE;return'';}
+function bindText(t,c){$(t).addEventListener('input',()=>{$(c).textContent=$(t).value.length+'/150';const e=$(t).parentElement.querySelector('.err');if(e)e.textContent='';});}
+
+/* ---------- Wish detail (others) ---------- */
+function openWish(id){const w=byId(id);if(!w)return;
+ if(w.mine)return openMine(id);
+ const t=TYPES[w.type];
+ let body=`<div class="preview">${use(w.st,84,106)}<div><div class="hint">${t.em} ${t.name}</div><h3 style="margin:2px 0">🎁 Someone’s Christmas Wish</h3><div class="meta">${daysTxt(w)}</div></div></div>
+ <div class="paper-note">“${esc(w.msg)}”</div>`;
+ if(w.type==='gift')body+=`<div><span class="pill">${esc(w.cat)}</span><span class="pill">🎁 ${esc(w.budget)}</span></div><p class="hint">งบเป็นแนวทาง ไม่ใช่ข้อบังคับ</p>`;
+ if(w.type==='blessing'){
+  body+=`<div class="lbl">คำอวยพร (${w.bc})</div><div id="bList"><p class="hint"><span class="spin"></span></p></div>`;
+  if(w.bm)body+=`<p class="hint">คุณอวยพร Wish นี้แล้ว ขอบคุณนะ ❤️</p>`;
+  else body+=`<div class="lbl">เขียนคำอวยพร</div><div class="chips" id="qb">${QUICKB.map(q=>`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+  <textarea id="bTxt" maxlength="150" placeholder="พิมพ์คำอวยพรของคุณ"></textarea><div class="count" id="bCnt">0/150</div><div class="err" id="bErr"></div>
+  <label class="hint" style="display:flex;gap:8px;align-items:center;min-height:40px"><input type="checkbox" id="anon" style="width:20px;height:20px"> ไม่ระบุชื่อ</label>
+  <button class="btn red" id="bSend">✨ ส่งคำอวยพร</button>`;
+ } else if(w.status==='OPEN') body+=`<button class="btn red" id="become">🎅 Become Santa</button>`;
+ else body+=`<p class="pill ok" style="font-size:15px;padding:8px 12px">🎅 Wish นี้มี Santa ใจดีรับไปแล้ว</p>`;
+ body+=`<button class="report" id="rep">รายงานข้อความนี้</button>`;
+ openSheet(body);
+ $('rep').onclick=()=>reportWish(id);
+ if($('become'))$('become').onclick=()=>confirmSanta(id);
+ if(w.type==='blessing')rpc('get_wish_blessings',{p_wish:id}).then(l=>{if($('bList'))$('bList').innerHTML=blessHtml(l||[]);}).catch(()=>{});
+ if($('bSend')){bindText('bTxt','bCnt');
+  $('qb').onclick=e=>{const q=e.target.closest('[data-q]');if(q){$('bTxt').value=q.dataset.q;$('bTxt').dispatchEvent(new Event('input'));}};
+  $('bSend').onclick=()=>{const v=$('bTxt').value.trim(),er=check(v);if(er){$('bErr').textContent=er;return;}
+   busy($('bSend'),()=>rpc('send_blessing',{p_wish:id,p_message:v,p_anonymous:$('anon').checked})).then(()=>{closeSheet();refresh();celebrate(['✨','🌟','💛'],'ส่งคำอวยพรแล้ว!','คำอวยพรของคุณลอยเข้าไปในถุงเท้าแล้ว เจ้าของ Wish จะได้รับแจ้งเตือน');}).catch(()=>{});};}
+}
+function reportWish(id){
+ const R=['ข้อความไม่เหมาะสม','มีข้อมูลส่วนตัว','อื่น ๆ'];
+ openSheet(`<h3>รายงาน Wish นี้</h3><p class="hint">Admin จะตรวจสอบ โดยไม่บอกเจ้าของว่าใครรายงาน</p>${R.map(r=>`<button class="btn ghost" data-r="${r}">${r}</button>`).join('')}`);
+ $('sheetBody').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>busy(b,()=>rpc('report_wish',{p_wish:id,p_reason:b.dataset.r})).then(()=>{closeSheet();toast('ส่งรายงานให้ Admin แล้ว ขอบคุณค่ะ');}).catch(()=>{}));
+}
+
+/* ---------- Santa ---------- */
+function confirmSanta(id){const w=byId(id);
+ openSheet(`<h3>🎅 Become this person’s Santa?</h3><p>คุณจะรับหน้าที่หา${w.type==='card'?'การ์ดอวยพร':'ของขวัญ'}ให้ Wish นี้ และนำไปมอบให้ผู้รับด้วยตนเองภายในฝ่าย</p>
+ <div class="paper-note">“${esc(w.msg)}”</div><p class="hint">รับภารกิจได้พร้อมกันสูงสุด 2 ภารกิจ · ส่งมอบได้ถึง 31 ธ.ค.</p>
+ <button class="btn red" id="yes">Yes, I’ll be Santa!</button><button class="btn ghost" id="no">ยังก่อน</button>`);
+ $('no').onclick=closeSheet;
+ $('yes').onclick=()=>busy($('yes'),()=>rpc('claim_wish',{p_wish:id})).then(async r=>{closeSheet();await refresh();
+  celebrate(['🧦','✨','🎅'],'You are a Santa now!',`ภารกิจของคุณ: ${r.recipient} · ${r.room}`,()=>openMission(r.claim_id));}).catch(()=>{});
+}
+function getSteps(cid){try{return JSON.parse(localStorage.getItem('wt-steps-'+cid))||[false,false,false,false]}catch(e){return [false,false,false,false]}}
+function openMission(cid){const m=MS.find(x=>x.claim_id===cid);if(!m)return;
+ const labels=['🎁 Find a gift','🎀 Prepare the gift','🚶 Deliver it to your recipient','❤️ Make someone smile'];
+ const done=m.claim_status==='DELIVERED',st=getSteps(cid);
+ openSheet(`<h3>❤️ Your Santa Mission</h3>
+ <div class="who"><div>👤 Recipient: <b>${esc(m.recipient)}</b></div><div>📍 Location: <b>${esc(m.room)}</b></div></div>
+ <div class="lbl">${TYPES[m.wish_type].em} Wish</div><div class="paper-note">“${esc(m.message)}”</div>${m.budget_range?`<p>Budget: <b>${esc(m.budget_range)}</b></p>`:''}
+ <ul class="steps">${labels.map((l,i)=>`<li><label><input type="checkbox" data-s="${i}" ${st.at(i)||done?'checked':''} ${done?'disabled':''}> Step ${i+1} · ${l}</label></li>`).join('')}</ul>
+ ${done?(m.thank_message?`<div class="lbl">❤️ ข้อความขอบคุณจากผู้รับ</div><div class="paper-note">${esc(m.thank_message)}</div>`:'<p class="pill ok" style="font-size:15px;padding:8px 12px">🎁 ส่งมอบแล้ว รอผู้รับขอบคุณ</p>')
+ :`<button class="btn green" id="deliv">🎁 Gift Delivered</button><button class="report" id="rel">ขอสละภารกิจ (Wish จะกลับไปแขวนให้คนอื่น)</button>`}`);
+ $('sheetBody').querySelectorAll('[data-s]').forEach(c=>c.onchange=()=>{st[+c.dataset.s]=c.checked;try{localStorage.setItem('wt-steps-'+cid,JSON.stringify(st))}catch(e){}});
+ if(done)return;
+ $('rel').onclick=()=>{openSheet(`<h3>สละภารกิจนี้?</h3><p>Wish ของ ${esc(m.recipient)} จะกลับไปแขวนบนต้นให้ Santa คนอื่น</p><button class="btn red" id="ry">ยืนยันสละภารกิจ</button><button class="btn ghost" id="rn">ทำภารกิจต่อ</button>`);
+  $('rn').onclick=()=>openMission(cid);
+  $('ry').onclick=()=>busy($('ry'),()=>rpc('release_claim',{p_claim:cid})).then(()=>{closeSheet();refresh();toast('สละภารกิจแล้ว Wish กลับไปแขวนบนต้นแล้ว');}).catch(()=>{});};
+ $('deliv').onclick=()=>{openSheet(`<h3>มอบของแล้วใช่ไหม?</h3><p style="font-size:18px">Have you delivered the gift to <b>${esc(m.recipient)}</b> at <b>${esc(m.room)}</b>?</p>
+  <button class="btn green" id="dy">Yes, Gift Delivered</button><button class="btn ghost" id="dn">ยังไม่ได้มอบ</button>`);
+  $('dn').onclick=()=>openMission(cid);
+  $('dy').onclick=()=>busy($('dy'),()=>rpc('mark_delivered',{p_claim:cid})).then(()=>{closeSheet();refresh();celebrate(['🎁','✨','❤️'],'Wish Granted!','ขอบคุณที่เป็น Santa ❤️ เมื่อผู้รับกดขอบคุณ คุณจะได้รับแจ้งเตือน');}).catch(()=>{});};
+}
+
+/* ---------- My wish ---------- */
+function openMine(id){const w=MY.find(x=>x.id===id);if(!w)return;
+ let body=`<div class="preview">${use(w.stocking_id,84,106)}<div><div class="hint">${TYPES[w.type].em} Wish ของคุณ</div>${w.type==='blessing'?'':statusPill(w.status)}<div class="meta" style="margin-top:6px">${daysTxt({days:daysSince(w.created_at)})}</div></div></div><div class="paper-note">“${esc(w.message)}”</div>`;
+ if(w.type==='blessing')body+=`<div class="lbl">คำอวยพรที่ได้รับ (${w.blessing_count})</div><div id="bList"><p class="hint"><span class="spin"></span></p></div><button class="report" id="del">ปลด Wish นี้ลงจากต้น</button>`;
+ else if(w.status==='OPEN')body+=`<p>🧦 Your wish is hanging on the tree…</p><button class="report" id="del">ปลด Wish นี้ลงจากต้น</button>`;
+ else if(w.status==='CLAIMED')body+=`<h3>🎅 Someone became your Santa!</h3><p>Your Christmas wish has found a Santa ❤️</p><p class="hint">ได้รับของแล้วแต่ Santa ยังไม่กดส่ง? กดขอบคุณได้เลย</p><button class="btn red" id="got">❤️ ได้รับแล้ว + Say Thank You</button>`;
+ else if(w.status==='GIFTED')body+=`<h3>🎁 Your Wish Came True!</h3><p>Someone made your Christmas wish come true ❤️</p>${w.santa_nickname?`<p>🎅 Santa: <b>${esc(w.santa_nickname)}</b></p>`:''}<button class="btn red" id="got">❤️ Say Thank You</button>`;
+ else body+=`<p>❤️ Wish fulfilled</p>${w.santa_nickname?`<p>🎅 Santa: <b>${esc(w.santa_nickname)}</b></p>`:''}${w.thank_message?`<div class="lbl">ข้อความขอบคุณของคุณ</div><div class="bless">${esc(w.thank_message)}</div>`:''}`;
+ openSheet(body);
+ if(w.type==='blessing')rpc('get_wish_blessings',{p_wish:id}).then(l=>{if($('bList'))$('bList').innerHTML=blessHtml(l||[]);}).catch(()=>{});
+ if($('got'))$('got').onclick=()=>thankYou(id);
+ if($('del'))$('del').onclick=()=>{openSheet(`<h3>ปลด Wish นี้ลง?</h3><p>ถุงเท้าจะถูกนำออกจากต้น แล้วคุณแขวน Wish ใหม่ได้</p><button class="btn red" id="dy">ปลดลง</button><button class="btn ghost" id="dn">เก็บไว้</button>`);
+  $('dn').onclick=()=>openMine(id);
+  $('dy').onclick=()=>busy($('dy'),()=>rpc('delete_wish',{p_id:id})).then(()=>{closeSheet();refresh();toast('ปลด Wish ลงแล้ว');}).catch(()=>{});};
+}
+function thankYou(id){
+ openSheet(`<h3>❤️ Say Thank You</h3><p class="hint">การขอบคุณ = ยืนยันว่าได้รับของแล้ว</p><div class="chips" id="qt" style="flex-wrap:wrap">${QUICK.map(q=>`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+ <textarea id="tTxt" maxlength="150" placeholder="หรือเขียนข้อความขอบคุณเอง"></textarea><div class="count" id="tCnt">0/150</div><div class="err" id="tErr"></div><button class="btn red" id="tSend">ส่งคำขอบคุณถึง Santa</button>`);
+ bindText('tTxt','tCnt');
+ $('qt').onclick=e=>{const q=e.target.closest('[data-q]');if(q){$('tTxt').value=q.dataset.q;$('tTxt').dispatchEvent(new Event('input'));}};
+ $('tSend').onclick=()=>{const v=$('tTxt').value.trim(),er=check(v);if(er){$('tErr').textContent=er;return;}
+  busy($('tSend'),()=>rpc('thank_santa',{p_wish:id,p_message:v})).then(()=>{closeSheet();refresh();celebrate(['💌','✨','❤️'],'ส่งคำขอบคุณแล้ว','Santa ของคุณจะได้รับข้อความนี้ Merry Christmas! 🎄');}).catch(()=>{});};
+}
+
+/* ---------- Make a Wish ---------- */
+const hasMine=k=>k==='blessing'?ME.has_blessing_wish:ME.has_gift_wish;
+function startMake(){D={step:1,type:null,msg:'',cat:CATS.at(6),budget:BUDGETS.at(0),st:1};makeStep();}
+function dots(){return `<div class="dots">${[1,2,3,4].map(i=>`<i class="${i===D.step?'on':''}"></i>`).join('')}</div>`;}
+function makeStep(){
+ if(D.step===1){
+  openSheet(`${dots()}<h3>🎁 Make a Wish</h3><p class="hint">แขวนได้คนละ 2 ใบ: ของขวัญหรือการ์ด 1 ใบ + คำอวยพร 1 ใบ</p><div class="types">${Object.entries(TYPES).map(([k,t])=>{const off=hasMine(k);return `<button class="type ${D.type===k?'on':''}" data-t="${k}" ${off?'disabled':''}><span class="em">${t.em}</span><span><b>${t.name}</b><span>${off?'คุณแขวน Wish ประเภทนี้ไว้แล้ว':t.desc}</span></span></button>`;}).join('')}</div>
+  <button class="btn red" id="next" ${D.type?'':'disabled'}>ต่อไป</button>`);
+  $('sheetBody').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{D.type=b.dataset.t;makeStep();});
+  $('next').onclick=()=>{D.step=2;makeStep();};
+ } else if(D.step===2){
+  const gift=D.type==='gift';
+  openSheet(`${dots()}<h3>${TYPES[D.type].em} เขียน Wish ของคุณ</h3><textarea id="mTxt" maxlength="150" placeholder="${gift?'เช่น อยากได้หนังสือนิยายสักเล่มครับ':D.type==='card'?'เช่น ขอการ์ดน่ารัก ๆ สักใบค่ะ':'เช่น ขอให้ปีหน้าสุขภาพแข็งแรงค่ะ'}">${esc(D.msg)}</textarea><div class="count" id="mCnt">${D.msg.length}/150</div><div class="err" id="mErr"></div>
+  ${gift?`<div class="lbl">หมวด</div><div class="chips" id="cats" style="flex-wrap:wrap">${CATS.map(c=>`<button class="chip ${c===D.cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+  <div class="lbl">งบประมาณ</div><div class="chips" id="buds" style="flex-wrap:wrap">${BUDGETS.map(b=>`<button class="chip ${b===D.budget?'on':''}" data-b="${esc(b)}">🎁 ${esc(b)}</button>`).join('')}</div><p class="hint">งบเป็นเพียงแนวทางช่วย Santa ตัดสินใจ ไม่ใช่ข้อบังคับ</p>`:''}
+  <p class="hint">ไม่ต้องใส่เบอร์โทรหรือข้อมูลส่วนตัว Santa จะเห็นแค่ชื่อเล่นและห้องยาของคุณ</p>
+  <button class="btn red" id="next">เลือกลายถุงเท้า</button><button class="btn ghost" id="back">ย้อนกลับ</button>`);
+  bindText('mTxt','mCnt');
+  if(gift){$('cats').onclick=e=>{const c=e.target.closest('[data-c]');if(c){D.cat=c.dataset.c;D.msg=$('mTxt').value;makeStep();}};$('buds').onclick=e=>{const b=e.target.closest('[data-b]');if(b){D.budget=b.dataset.b;D.msg=$('mTxt').value;makeStep();}};}
+  $('back').onclick=()=>{D.msg=$('mTxt').value;D.step=1;makeStep();};
+  $('next').onclick=()=>{const v=$('mTxt').value.trim(),er=check(v);if(er){$('mErr').textContent=er;return;}D.msg=v;D.step=3;makeStep();};
+ } else if(D.step===3){
+  openSheet(`${dots()}<h3>🧦 เลือกลายถุงเท้า</h3><div class="picker">${STOCKINGS.map(s=>`<button class="pick ${s.id===D.st?'on':''}" data-st="${s.id}" aria-label="${s.name}">${use(s.id,44,56)}${s.name}</button>`).join('')}</div>
+  <button class="btn red" id="next">ดู Preview</button><button class="btn ghost" id="back">ย้อนกลับ</button>`);
+  $('sheetBody').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{D.st=+b.dataset.st;makeStep();});
+  $('back').onclick=()=>{D.step=2;makeStep();};$('next').onclick=()=>{D.step=4;makeStep();};
+ } else {
+  openSheet(`${dots()}<h3>🧦 Stocking Preview</h3><div class="preview">${use(D.st,84,106)}<div class="paper-note" style="flex:1">“${esc(D.msg)}”</div></div>
+  <div>${D.type==='gift'?`<span class="pill">${esc(D.cat)}</span><span class="pill">🎁 ${esc(D.budget)}</span>`:`<span class="pill">${TYPES[D.type].em} ${TYPES[D.type].name}</span>`}</div>
+  <button class="btn red" id="hang">Hang My Wish 🎄</button><button class="btn ghost" id="back">แก้ไข</button>`);
+  $('back').onclick=()=>{D.step=3;makeStep();};
+  $('hang').onclick=()=>busy($('hang'),()=>rpc('create_wish',{p_type:D.type,p_message:D.msg,p_category:D.type==='gift'?D.cat:null,p_budget:D.type==='gift'?D.budget:null,p_stocking:D.st})).then(hang).catch(()=>{});
+ }
+}
+async function hang(id){
+ closeSheet();show('tree');await refresh();
+ const g=$('scene').querySelector(`.sock[data-id="${id}"]`);if(!g)return;
+ g.classList.add('drop');
+ const [x,y]=SLOTS.at(PLACED[id]);let sp='';
+ for(let i=0;i<10;i++){const a=i*Math.PI/5;sp+=`<path class="spark" d="${star(x,y+62,5)}" fill="#ffd76a" style="--dx:${(Math.cos(a)*40).toFixed(0)}px;--dy:${(Math.sin(a)*40).toFixed(0)}px;animation-delay:1.2s;transform-box:fill-box;transform-origin:center;opacity:0"/>`;}
+ $('sockLayer').insertAdjacentHTML('beforeend',sp);
+ $('scene').scrollIntoView({behavior:'smooth',block:'center'});
+ setTimeout(()=>toast('แขวน Wish ของคุณบนต้นแล้ว ✨ ถุงเท้าที่ส่องแสงคือของคุณ'),1300);
+}
+
+/* ---------- Explore & Me ---------- */
+const FILTERS=[['all','ทั้งหมด'],['gift','🎁 ของขวัญ'],['card','💌 การ์ด'],['blessing','✨ คำอวยพร']];
+function renderExplore(){
+ $('filters').innerHTML=FILTERS.map(([k,l])=>`<button class="chip ${FILTER===k?'on':''}" data-f="${k}">${l}</button>`).join('');
+ const list=W.filter(w=>!w.mine&&(FILTER==='all'||w.type===FILTER)&&(w.type==='blessing'||w.status==='OPEN'));
+ $('exploreGrid').innerHTML=list.length?list.map(w=>`<button class="card" data-w="${w.id}">${use(w.st,44,56)}<div class="msg">“${esc(w.msg)}”</div><div>${w.type==='gift'?`<span class="pill">${esc(w.cat)}</span><span class="pill">🎁 ${esc(w.budget)}</span>`:`<span class="pill">${TYPES[w.type].em} ${TYPES[w.type].name}</span>`}</div><div class="meta">${daysTxt(w)}</div></button>`).join('')
+  :`<div class="empty" style="grid-column:1/-1">${W.length?'ทุก Wish ในหมวดนี้มี Santa แล้ว 🎅 ลองดูหมวดอื่นนะ':'ยังไม่มี Wish บนต้นเลย เป็นคนแรกที่แขวนกันไหม 🎄'}</div>`;
+}
+$('filters').addEventListener('click',e=>{const f=e.target.closest('[data-f]');if(f){FILTER=f.dataset.f;renderExplore();}});
+$('exploreGrid').addEventListener('click',e=>{const c=e.target.closest('[data-w]');if(c)openWish(+c.dataset.w);});
+function renderMe(){
+ $('myWishes').innerHTML=MY.length?MY.map(w=>`<button class="row" data-m="${w.id}" style="text-align:left">${use(w.stocking_id,40,52)}<div class="grow"><div style="font:600 16px Mali,cursive">“${esc(w.message)}”</div>${w.type==='blessing'?`<span class="pill">✨ คำอวยพร ${w.blessing_count}</span>`:statusPill(w.status)}</div></button>`).join('')
+  :`<div class="empty">ยังไม่มี Wish เลย<br><button class="chip on" data-go="make" style="margin-top:10px">🎁 Make a Wish</button></div>`;
+ $('myMissions').innerHTML=MS.length?MS.map((m,i)=>`<button class="row" data-mi="${m.claim_id}" style="text-align:left">${use(m.stocking_id,40,52)}<div class="grow"><b>🎁 Mission #${String(i+1).padStart(3,'0')}</b><div>Recipient: ${esc(m.recipient)} · 📍 ${esc(m.room)}</div><div class="meta">“${esc(m.message)}”</div>${m.claim_status==='DELIVERED'?(m.wish_status==='THANKED'?'<span class="pill ok">❤️ ได้รับคำขอบคุณแล้ว</span>':'<span class="pill ok">🎁 Delivered</span>'):'<span class="pill wait">🟡 Preparing Gift</span>'}</div></button>`).join('')
+  :`<div class="empty">ยังไม่ได้เป็น Santa ให้ใคร<br><button class="chip on" data-tab="explore" style="margin-top:10px">🎅 ไปเลือก Wish</button></div>`;
+}
+$('myWishes').addEventListener('click',e=>{const r=e.target.closest('[data-m]');if(r)openMine(+r.dataset.m);});
+$('myMissions').addEventListener('click',e=>{const r=e.target.closest('[data-mi]');if(r)openMission(+r.dataset.mi);});
+
+/* ---------- Nav & notifications ---------- */
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));document.querySelectorAll('.tab[data-tab]').forEach(t=>t.classList.toggle('on',t.dataset.tab===v));window.scrollTo({top:0});}
+document.addEventListener('click',e=>{if(!ME)return;const g=e.target.closest('[data-go]'),t=e.target.closest('[data-tab]');
+ if(g){if(g.dataset.go==='make')startMake();else show(g.dataset.go);}
+ else if(t&&!e.target.closest('.sheet'))show(t.dataset.tab);});
+const ago=c=>{const m=Math.floor((Date.now()-Date.parse(c))/6e4);return m<1?'เมื่อสักครู่':m<60?m+' นาทีที่แล้ว':m<1440?Math.floor(m/60)+' ชั่วโมงที่แล้ว':Math.floor(m/1440)+' วันที่แล้ว';};
+$('bellBtn').onclick=()=>{if(!ME)return;
+ openSheet(`<h3>🔔 การแจ้งเตือน</h3>${NT.length?NT.map(n=>`<div class="notif ${n.read_at?'':'unread'}"><b>${esc(n.title)}</b>${esc(n.message)}<div class="meta">${ago(n.created_at)}</div></div>`).join(''):'<p class="hint">ยังไม่มีการแจ้งเตือน</p>'}`);
+ if(NT.some(n=>!n.read_at))rpc('mark_notifications_read').then(()=>{NT.forEach(n=>n.read_at=n.read_at||new Date().toISOString());badge();}).catch(()=>{});};
+$('logoutBtn').onclick=()=>busy($('logoutBtn'),()=>rpc('logout')).then(()=>{ME=null;PLACED={};show('tree');showGate();}).catch(()=>{});
+
+/* ---------- Login gate ---------- */
+let roomsLoaded=false;
+async function showGate(){
+ $('gate').classList.remove('off');$('gLoading').hidden=true;$('gForm').hidden=false;$('gMsg').textContent='';
+ if(!roomsLoaded){const {data,error}=await sb.from('rooms').select('id,name').order('sort_order');if(error){gateErr(errMsg(error));return;}
+  $('gRoom').innerHTML='<option value="">— เลือกห้องยา/หน่วยงาน —</option>'+data.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('');roomsLoaded=true;
+  try{const last=JSON.parse(localStorage.getItem('wt-last')||'null');if(last){$('gNick').value=last.n;$('gRoom').value=last.r;}}catch(e){}}
+ $('gPin').value='';$('gPin2').value='';$('gConfirm').hidden=true;
+}
+function gateErr(m,info){$('gMsg').textContent=m;$('gMsg').classList.toggle('info',!!info);}
+['gNick','gRoom'].forEach(i=>$(i).addEventListener('input',()=>{$('gConfirm').hidden=true;gateErr('');}));
+$('gForm').addEventListener('submit',async e=>{e.preventDefault();
+ const nick=$('gNick').value.trim().replace(/\s+/g,' '),room=+$('gRoom').value,pin=$('gPin').value;
+ if(!nick)return gateErr('กรอกชื่อเล่นก่อนนะ');if(!room)return gateErr(ERR.ROOM_INVALID);if(!/^\d{4}$/.test(pin))return gateErr(ERR.PIN_FORMAT);
+ const btn=$('gGo');btn.disabled=true;const t=btn.innerHTML;btn.innerHTML='<span class="spin"></span>';
+ try{
+  if(!$('gConfirm').hidden){
+   if($('gPin2').value!==pin)return gateErr('PIN สองช่องไม่ตรงกัน');
+   ME=await rpc('register_profile',{p_nickname:nick,p_room_id:room,p_pin:pin});
+  } else {
+   const r=await rpc('login_profile',{p_nickname:nick,p_room_id:room,p_pin:pin});
+   if(!r.ok){
+    if(r.error==='NOT_FOUND'){$('gConfirm').hidden=false;$('gPin2').focus();return gateErr(`ยังไม่มี “${nick}” ในห้องนี้ — ยืนยัน PIN อีกครั้งเพื่อลงทะเบียน`,true);}
+    if(r.error==='PIN_WRONG')return gateErr(`PIN ไม่ถูกต้อง เหลือโอกาสอีก ${r.remaining} ครั้ง`);
+    if(r.error==='LOCKED')return gateErr(`ใส่ PIN ผิดหลายครั้ง ลองใหม่ใน ${r.minutes} นาที หรือติดต่อ Admin`);
+    if(r.error==='INACTIVE')return gateErr('บัญชีนี้ถูกปิดใช้งาน ติดต่อ Admin');
+    return gateErr(errMsg({message:r.error}));
+   }
+   ME=r.me;
+  }
+  try{localStorage.setItem('wt-last',JSON.stringify({n:nick,r:room}))}catch(e){}
+  await enter();
+ }catch(err){gateErr(errMsg(err));}
+ finally{btn.disabled=false;btn.innerHTML=t;}
+});
+async function enter(){
+ await refresh();if(!ME)return;
+ $('gate').classList.add('off');
+ clearInterval(polling);
+ polling=setInterval(()=>{if(document.visibilityState==='visible'&&ME&&!$('sheet').classList.contains('on'))refresh().catch(()=>{});},60000);
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ME)refresh().catch(()=>{});});
+
+async function boot(){
+ try{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){const {error}=await sb.auth.signInAnonymously();if(error)throw error;}
+  ME=await rpc('get_me');
+  if(ME)await enter();else await showGate();
+ }catch(e){$('gLoading').innerHTML=esc(errMsg(e))+'<br><button class="btn ghost" onclick="location.reload()">ลองใหม่</button>';}
+}
+
+/* ---------- Snow & motion ---------- */
+let flakes='';for(let i=0;i<34;i++){const s=3+(i%4)*1.5;flakes+=`<i class="flake" style="left:${(i*29)%100}%;width:${s}px;height:${s}px;animation-duration:${8+(i%7)*1.6}s;animation-delay:-${(i*1.3)%12}s;opacity:${.45+(i%3)*.2}"></i>`;}
+$('snow').innerHTML=flakes;
+try{if(localStorage.getItem('wt-calm')==='1')document.body.classList.add('calm');}catch(e){}
+$('calmBtn').onclick=()=>{const on=document.body.classList.toggle('calm');try{localStorage.setItem('wt-calm',on?'1':'0')}catch(e){}toast(on?'ปิดหิมะและแอนิเมชันแล้ว':'เปิดหิมะและแอนิเมชันแล้ว');};
+
+boot();
+}
+</script>
+</body>
+</html>
