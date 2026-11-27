@@ -324,7 +324,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const byId=id=>W.find(w=>w.id===id);
 const daysSince=c=>Math.max(0,Math.floor((Date.now()-Date.parse(c))/864e5));
 const daysTxt=w=>w.days===0?'แขวนวันนี้':`แขวนมา ${w.days} วัน`;
-const mapW=r=>({id:r.id,type:r.type,msg:r.message,cat:r.category,budget:r.budget_range,st:r.stocking_id,status:r.status,days:daysSince(r.created_at),mine:r.is_mine,bc:r.blessing_count,bm:r.blessed_by_me});
+const mapW=r=>({id:r.id,type:r.type,msg:r.message,cat:r.category,budget:r.budget_range,st:r.stocking_id,status:r.status,days:daysSince(r.created_at),mine:r.is_mine,bc:r.blessing_count,bm:r.blessed_by_me,who:r.owner_nickname,room:r.owner_room});
 
 /* ---------- Scene ---------- */
 function star(cx,cy,r){let p='';for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;p+=(i?'L':'M')+(cx+rr*Math.cos(a)).toFixed(1)+' '+(cy+rr*Math.sin(a)).toFixed(1);}return p+'Z';}
@@ -402,7 +402,7 @@ function bindText(t,c){$(t).addEventListener('input',()=>{$(c).textContent=$(t).
 function openWish(id){const w=byId(id);if(!w)return;
  if(w.mine)return openMine(id);
  const t=TYPES[w.type];
- let body=`<div class="preview">${use(w.st,84,106)}<div><div class="hint">${t.em} ${t.name}</div><h3 style="margin:2px 0">🎁 Someone’s Christmas Wish</h3><div class="meta">${daysTxt(w)}</div></div></div>
+ let body=`<div class="preview">${use(w.st,84,106)}<div><div class="hint">${t.em} ${t.name}</div><h3 style="margin:2px 0">${w.who?`🎁 Wish ของ ${esc(w.who)}`:'🎁 Someone’s Christmas Wish'}</h3>${w.who?`<div style="font-weight:600">📍 ${esc(w.room)}</div>`:''}<div class="meta">${daysTxt(w)}</div></div></div>
  <div class="paper-note">“${esc(w.msg)}”</div>`;
  if(w.type==='gift')body+=`<div><span class="pill">${esc(w.cat)}</span><span class="pill">🎁 ${esc(w.budget)}</span></div><p class="hint">งบเป็นแนวทาง ไม่ใช่ข้อบังคับ</p>`;
  if(w.type==='blessing'){
@@ -432,7 +432,7 @@ function reportWish(id){
 
 /* ---------- Santa ---------- */
 function confirmSanta(id){const w=byId(id);
- openSheet(`<h3>🎅 Become this person’s Santa?</h3><p>คุณจะรับหน้าที่หา${w.type==='card'?'การ์ดอวยพร':'ของขวัญ'}ให้ Wish นี้ และนำไปมอบให้ผู้รับด้วยตนเองภายในฝ่าย</p>
+ openSheet(`<h3>${w.who?`🎅 เป็น Santa ให้ ${esc(w.who)}?`:'🎅 Become this person’s Santa?'}</h3>${w.who?`<div class="who"><div>👤 ผู้รับ: <b>${esc(w.who)}</b></div><div>📍 ห้อง: <b>${esc(w.room)}</b></div></div>`:''}<p>คุณจะรับหน้าที่หา${w.type==='card'?'การ์ดอวยพร':'ของขวัญ'}ให้ Wish นี้ และนำไปมอบให้ผู้รับด้วยตนเองภายในฝ่าย</p>
  <div class="paper-note">“${esc(w.msg)}”</div><p class="hint">รับภารกิจได้พร้อมกันสูงสุด 2 ภารกิจ · ส่งมอบได้ถึง 31 ธ.ค.</p>
  <button class="btn red" id="yes">Yes, I’ll be Santa!</button><button class="btn ghost" id="no">ยังก่อน</button>`);
  $('no').onclick=closeSheet;
@@ -542,7 +542,7 @@ const FILTERS=[['all','ทั้งหมด'],['gift','🎁 ของขวั�
 function renderExplore(){
  $('filters').innerHTML=FILTERS.map(([k,l])=>`<button class="chip ${FILTER===k?'on':''}" data-f="${k}">${l}</button>`).join('');
  const list=W.filter(w=>!w.mine&&(FILTER==='all'||w.type===FILTER)&&(w.type==='blessing'||w.status==='OPEN'));
- $('exploreGrid').innerHTML=list.length?list.map(w=>`<button class="card" data-w="${w.id}">${use(w.st,44,56)}<div class="msg">“${esc(w.msg)}”</div><div>${w.type==='gift'?`<span class="pill">${esc(w.cat)}</span><span class="pill">🎁 ${esc(w.budget)}</span>`:`<span class="pill">${TYPES[w.type].em} ${TYPES[w.type].name}</span>`}</div><div class="meta">${daysTxt(w)}</div></button>`).join('')
+ $('exploreGrid').innerHTML=list.length?list.map(w=>`<button class="card" data-w="${w.id}">${use(w.st,44,56)}<div class="msg">“${esc(w.msg)}”</div><div>${w.type==='gift'?`<span class="pill">${esc(w.cat)}</span><span class="pill">🎁 ${esc(w.budget)}</span>`:`<span class="pill">${TYPES[w.type].em} ${TYPES[w.type].name}</span>`}</div>${w.who?`<div class="meta">👤 <b>${esc(w.who)}</b> · ${esc(w.room)}</div>`:''}<div class="meta">${daysTxt(w)}</div></button>`).join('')
   :`<div class="empty" style="grid-column:1/-1">${W.length?'ทุก Wish ในหมวดนี้มี Santa แล้ว 🎅 ลองดูหมวดอื่นนะ':'ยังไม่มี Wish บนต้นเลย เป็นคนแรกที่แขวนกันไหม 🎄'}</div>`;
 }
 $('filters').addEventListener('click',e=>{const f=e.target.closest('[data-f]');if(f){FILTER=f.dataset.f;renderExplore();}});
@@ -663,6 +663,7 @@ function adminRender(){
   b.innerHTML=`<div class="arow"><label class="lbl">ปิดรับ Wish ใหม่หลังวันที่<input class="ainput" type="date" id="sOpen" value="${esc(d('wishes_open_until'))}"></label>
    <label class="lbl">ส่งมอบของได้ถึงวันที่<input class="ainput" type="date" id="sDeliver" value="${esc(d('deliver_until'))}"></label>
    <label class="lbl">ภารกิจ Santa พร้อมกันสูงสุด<input class="ainput" type="number" min="1" max="10" id="sMax" value="${esc(d('max_active_missions'))}"></label>
+   <label class="lbl" style="display:flex;gap:10px;align-items:center;min-height:44px"><input type="checkbox" id="sShow" style="width:22px;height:22px" ${ASET.show_requester_name===true?'checked':''}> แสดงชื่อเล่นและห้องของผู้ขอ ให้ทุกคนเห็นตั้งแต่แตะถุงเท้า</label>
    <label class="lbl" style="display:flex;gap:10px;align-items:center;min-height:44px"><input type="checkbox" id="sReveal" style="width:22px;height:22px" ${ASET.reveal_santa_after_delivery===true?'checked':''}> เปิดเผยชื่อ Santa ให้ผู้รับเห็น หลังส่งของแล้ว</label>
    <button class="btn red" data-act="save-settings">บันทึกการตั้งค่า</button></div>`;
  }
@@ -719,7 +720,7 @@ $('aBody').addEventListener('click',e=>{
   const o=$('sOpen').value,dl=$('sDeliver').value,mx=+$('sMax').value;
   if(!o||!dl)return toast('ใส่วันที่ให้ครบ');if(!(mx>=1&&mx<=10))return toast('ภารกิจพร้อมกันต้องอยู่ระหว่าง 1–10');
   run(async()=>{await rpc('admin_set_setting',{p_key:'wishes_open_until',p_value:o});await rpc('admin_set_setting',{p_key:'deliver_until',p_value:dl});
-   await rpc('admin_set_setting',{p_key:'max_active_missions',p_value:mx});await rpc('admin_set_setting',{p_key:'reveal_santa_after_delivery',p_value:$('sReveal').checked});toast('บันทึกการตั้งค่าแล้ว');});}
+   await rpc('admin_set_setting',{p_key:'max_active_missions',p_value:mx});await rpc('admin_set_setting',{p_key:'reveal_santa_after_delivery',p_value:$('sReveal').checked});await rpc('admin_set_setting',{p_key:'show_requester_name',p_value:$('sShow').checked});toast('บันทึกการตั้งค่าแล้ว');});}
 });
 
 /* ---------- Snow & motion ---------- */
