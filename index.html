@@ -435,17 +435,25 @@ function confirmSanta(id){const w=byId(id);
   celebrate(['🧦','✨','🎅'],'You are a Santa now!',`ภารกิจของคุณ: ${r.recipient} · ${r.room}`,()=>openMission(r.claim_id));}).catch(()=>{});
 }
 function getSteps(cid){try{return JSON.parse(localStorage.getItem('wt-steps-'+cid))||[false,false,false,false]}catch(e){return [false,false,false,false]}}
+const STEP_TXT=['🎁 กำลังหาของขวัญ','🎀 เตรียมของแล้ว','🚶 มอบของแล้ว','❤️ มอบของแล้ว'];
+function stepPill(m){if(m.claim_status==='DELIVERED')return m.wish_status==='THANKED'?'<span class="pill ok">❤️ ได้รับคำขอบคุณแล้ว</span>':'<span class="pill ok">🎁 Delivered</span>';
+ const st=getSteps(m.claim_id),n=st.filter(Boolean).length,last=st.lastIndexOf(true);return `<span class="pill wait">🟡 ${n?STEP_TXT.at(last):'เพิ่งรับภารกิจ'} · ${n}/4</span>`;}
 function openMission(cid){const m=MS.find(x=>x.claim_id===cid);if(!m)return;
  const labels=['🎁 Find a gift','🎀 Prepare the gift','🚶 Deliver it to your recipient','❤️ Make someone smile'];
  const done=m.claim_status==='DELIVERED',st=getSteps(cid);
  openSheet(`<h3>❤️ Your Santa Mission</h3>
  <div class="who"><div>👤 Recipient: <b>${esc(m.recipient)}</b></div><div>📍 Location: <b>${esc(m.room)}</b></div></div>
  <div class="lbl">${TYPES[m.wish_type].em} Wish</div><div class="paper-note">“${esc(m.message)}”</div>${m.budget_range?`<p>Budget: <b>${esc(m.budget_range)}</b></p>`:''}
+ ${done?'':'<p class="hint">ไม่ต้องรีบ ภารกิจนี้เก็บไว้ที่แท็บ <b>ของฉัน → My Santa Missions</b> กลับมาติ๊กทีละขั้นได้ทุกเมื่อ (ส่งมอบได้ถึง 31 ธ.ค.)</p>'}
  <ul class="steps">${labels.map((l,i)=>`<li><label><input type="checkbox" data-s="${i}" ${st.at(i)||done?'checked':''} ${done?'disabled':''}> Step ${i+1} · ${l}</label></li>`).join('')}</ul>
  ${done?(m.thank_message?`<div class="lbl">❤️ ข้อความขอบคุณจากผู้รับ</div><div class="paper-note">${esc(m.thank_message)}</div>`:'<p class="pill ok" style="font-size:15px;padding:8px 12px">🎁 ส่งมอบแล้ว รอผู้รับขอบคุณ</p>')
- :`<button class="btn green" id="deliv">🎁 Gift Delivered</button><button class="report" id="rel">ขอสละภารกิจ (Wish จะกลับไปแขวนให้คนอื่น)</button>`}`);
- $('sheetBody').querySelectorAll('[data-s]').forEach(c=>c.onchange=()=>{st[+c.dataset.s]=c.checked;try{localStorage.setItem('wt-steps-'+cid,JSON.stringify(st))}catch(e){}});
+ :`<button class="btn red" id="later">👍 เก็บภารกิจไว้ ไปหาของก่อน</button>
+ <button class="btn green" id="deliv" ${st.at(2)?'':'disabled'}>🎁 Gift Delivered</button><p class="hint" id="delivHint" style="text-align:center" ${st.at(2)?'hidden':''}>ติ๊ก Step 3 เมื่อมอบของให้ผู้รับแล้ว ปุ่ม Gift Delivered จะกดได้</p>
+ <button class="report" id="rel">ขอสละภารกิจ (Wish จะกลับไปแขวนให้คนอื่น)</button>`}`);
+ $('sheetBody').querySelectorAll('[data-s]').forEach(c=>c.onchange=()=>{st[+c.dataset.s]=c.checked;try{localStorage.setItem('wt-steps-'+cid,JSON.stringify(st))}catch(e){}
+  if($('deliv')){$('deliv').disabled=!st.at(2);$('delivHint').hidden=!!st.at(2);}renderMe();});
  if(done)return;
+ $('later').onclick=()=>{closeSheet();toast('เก็บภารกิจไว้แล้ว 🎅 กลับมาได้ที่ ของฉัน → My Santa Missions');};
  $('rel').onclick=()=>{openSheet(`<h3>สละภารกิจนี้?</h3><p>Wish ของ ${esc(m.recipient)} จะกลับไปแขวนบนต้นให้ Santa คนอื่น</p><button class="btn red" id="ry">ยืนยันสละภารกิจ</button><button class="btn ghost" id="rn">ทำภารกิจต่อ</button>`);
   $('rn').onclick=()=>openMission(cid);
   $('ry').onclick=()=>busy($('ry'),()=>rpc('release_claim',{p_claim:cid})).then(()=>{closeSheet();refresh();toast('สละภารกิจแล้ว Wish กลับไปแขวนบนต้นแล้ว');}).catch(()=>{});};
@@ -537,7 +545,7 @@ $('exploreGrid').addEventListener('click',e=>{const c=e.target.closest('[data-w]
 function renderMe(){
  $('myWishes').innerHTML=MY.length?MY.map(w=>`<button class="row" data-m="${w.id}" style="text-align:left">${use(w.stocking_id,40,52)}<div class="grow"><div style="font:600 16px Mali,cursive">“${esc(w.message)}”</div>${w.type==='blessing'?`<span class="pill">✨ คำอวยพร ${w.blessing_count}</span>`:statusPill(w.status)}</div></button>`).join('')
   :`<div class="empty">ยังไม่มี Wish เลย<br><button class="chip on" data-go="make" style="margin-top:10px">🎁 Make a Wish</button></div>`;
- $('myMissions').innerHTML=MS.length?MS.map((m,i)=>`<button class="row" data-mi="${m.claim_id}" style="text-align:left">${use(m.stocking_id,40,52)}<div class="grow"><b>🎁 Mission #${String(i+1).padStart(3,'0')}</b><div>Recipient: ${esc(m.recipient)} · 📍 ${esc(m.room)}</div><div class="meta">“${esc(m.message)}”</div>${m.claim_status==='DELIVERED'?(m.wish_status==='THANKED'?'<span class="pill ok">❤️ ได้รับคำขอบคุณแล้ว</span>':'<span class="pill ok">🎁 Delivered</span>'):'<span class="pill wait">🟡 Preparing Gift</span>'}</div></button>`).join('')
+ $('myMissions').innerHTML=MS.length?MS.map((m,i)=>`<button class="row" data-mi="${m.claim_id}" style="text-align:left">${use(m.stocking_id,40,52)}<div class="grow"><b>🎁 Mission #${String(i+1).padStart(3,'0')}</b><div>Recipient: ${esc(m.recipient)} · 📍 ${esc(m.room)}</div><div class="meta">“${esc(m.message)}”</div>${stepPill(m)}</div></button>`).join('')
   :`<div class="empty">ยังไม่ได้เป็น Santa ให้ใคร<br><button class="chip on" data-tab="explore" style="margin-top:10px">🎅 ไปเลือก Wish</button></div>`;
 }
 $('myWishes').addEventListener('click',e=>{const r=e.target.closest('[data-m]');if(r)openMine(+r.dataset.m);});
