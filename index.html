@@ -115,6 +115,8 @@ button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outlin
 .tbtn.on{outline:2px solid var(--gold);outline-offset:1px}
 .tbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.3)}
 @media(max-width:370px){.tbtn{font-size:14px}.tabs{grid-template-columns:54px minmax(0,1fr) minmax(0,1fr) 54px!important}}
+.icon-btn{color:#fff}.icon-btn.on{background:var(--gold);color:#3a2708}
+@media(max-width:400px){.top{gap:6px;padding:10px 8px}.icon-btn{width:40px;height:40px}.sign{font-size:16px;gap:6px}.sign svg{width:24px}}
 .grab{width:44px;height:5px;border-radius:3px;background:#d9c8a6;margin:0 auto 10px}
 .sheet h3{font:700 22px/1.25 Mali,cursive;margin:6px 0 8px;color:var(--pine)}
 .sheet p{margin:6px 0}
@@ -216,6 +218,9 @@ textarea{width:100%;min-height:110px;border-radius:12px;border:2px solid var(--p
       <span>Christmas Wish Tree</span>
     </div>
     <div class="who-me" id="whoMe"></div>
+    <button class="icon-btn" id="musicBtn" aria-label="เปิด/ปิดเพลง" aria-pressed="false" title="เปิด/ปิดเพลง">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    </button>
     <button class="icon-btn" id="calmBtn" aria-label="เปิด/ปิดหิมะและแอนิเมชัน" title="เปิด/ปิดแอนิเมชัน">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M4 7l16 10M20 7L4 17M9 3l3 3 3-3M9 21l3-3 3 3"/></svg>
     </button>
@@ -465,6 +470,7 @@ function confirmSanta(id){const w=byId(id);
  <button class="btn red" id="yes">Yes, I’ll be Santa!</button><button class="btn ghost" id="no">ยังก่อน</button>`);
  $('no').onclick=closeSheet;
  $('yes').onclick=()=>busy($('yes'),()=>rpc('claim_wish',{p_wish:id})).then(async r=>{closeSheet();await refresh();
+  if(MUSIC.on&&MUSIC.ctx)hoHoHo(MUSIC.ctx.currentTime+0.05);
   celebrate(['🧦','✨','🎅'],'You are a Santa now!',`ภารกิจของคุณ: ${r.recipient} · ${r.room}`,()=>openMission(r.claim_id));}).catch(()=>{});
 }
 function getSteps(cid){try{return JSON.parse(localStorage.getItem('wt-steps-'+cid))||[false,false,false,false]}catch(e){return [false,false,false,false]}}
@@ -638,6 +644,7 @@ $('gForm').addEventListener('submit',async e=>{e.preventDefault();
 async function enter(){
  await refresh();if(!ME)return;
  $('gate').classList.add('off');
+ try{if(!localStorage.getItem('wt-music')&&!localStorage.getItem('wt-music-hint')){localStorage.setItem('wt-music-hint','1');setTimeout(()=>toast('🎵 แตะปุ่มโน้ตเพลงด้านบน เพื่อเปิดเพลงคริสต์มาสเบา ๆ'),1500);}}catch(e){}
  clearInterval(polling);
  polling=setInterval(()=>{if(document.visibilityState==='visible'&&ME&&!$('sheet').classList.contains('on'))refresh().catch(()=>{});},60000);
 }
@@ -755,6 +762,63 @@ $('aBody').addEventListener('click',e=>{
   run(async()=>{await rpc('admin_set_setting',{p_key:'wishes_open_until',p_value:o});await rpc('admin_set_setting',{p_key:'deliver_until',p_value:dl});
    await rpc('admin_set_setting',{p_key:'max_active_missions',p_value:mx});await rpc('admin_set_setting',{p_key:'reveal_santa_after_delivery',p_value:$('sReveal').checked});await rpc('admin_set_setting',{p_key:'show_requester_name',p_value:$('sShow').checked});toast('บันทึกการตั้งค่าแล้ว');});}
 });
+
+/* ---------- Music: Jingle Bells (public domain) music box + sleigh bells + occasional "Ho ho ho" ---------- */
+const MUSIC={on:false,ctx:null,master:null,noise:null,next:0,timer:null,loops:0};
+const BEAT=0.5,LOOP_BEATS=64,REST=8;
+const MEL='E5:1 E5:1 E5:2 E5:1 E5:1 E5:2 E5:1 G5:1 C5:1.5 D5:.5 E5:4 F5:1 F5:1 F5:1.5 F5:.5 F5:1 E5:1 E5:1 E5:.5 E5:.5 E5:1 D5:1 D5:1 E5:1 D5:2 G5:2 '+
+ 'E5:1 E5:1 E5:2 E5:1 E5:1 E5:2 E5:1 G5:1 C5:1.5 D5:.5 E5:4 F5:1 F5:1 F5:1 F5:1 F5:1 E5:1 E5:1 E5:.5 E5:.5 G5:1 G5:1 F5:1 D5:1 C5:4';
+const BASS='C3 C3 C3 C3 F3 C3 G3 G3 C3 C3 C3 C3 F3 C3 G3 C3';
+const hz=n=>{const st={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[n[0]];return 440*Math.pow(2,(st+12*(+n.at(-1)+1)-69)/12);};
+function mInit(){
+ if(MUSIC.ctx)return;
+ const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+ const ctx=new C(),master=ctx.createGain();master.gain.value=0.8;master.connect(ctx.destination);
+ const buf=ctx.createBuffer(1,ctx.sampleRate*0.4,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+ Object.assign(MUSIC,{ctx,master,noise:buf});
+}
+function mNote(f,t,dur,vol){const c=MUSIC.ctx,g=c.createGain(),o=c.createOscillator(),o2=c.createOscillator(),g2=c.createGain();
+ o.type='sine';o.frequency.value=f;o2.type='sine';o2.frequency.value=f*3;g2.gain.value=0.18;
+ o.connect(g);o2.connect(g2);g2.connect(g);g.connect(MUSIC.master);
+ const end=t+Math.min(dur,1.4)+0.35;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.008);g.gain.exponentialRampToValueAtTime(0.0008,end);
+ o.start(t);o2.start(t);o.stop(end+0.05);o2.stop(end+0.05);}
+function mBell(t,vol){const c=MUSIC.ctx,s=c.createBufferSource(),hp=c.createBiquadFilter(),g=c.createGain();
+ s.buffer=MUSIC.noise;hp.type='highpass';hp.frequency.value=7000;s.connect(hp);hp.connect(g);g.connect(MUSIC.master);
+ g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0005,t+0.13);s.start(t);s.stop(t+0.15);}
+function mLoop(t0){
+ let t=t0;MEL.split(' ').forEach(x=>{const [n,b]=x.split(':');mNote(hz(n),t,+b*BEAT,0.16);t+=+b*BEAT;});
+ BASS.split(' ').forEach((n,i)=>{mNote(hz(n),t0+i*4*BEAT,1.6*BEAT,0.07);mNote(hz(n),t0+(i*4+2)*BEAT,1.6*BEAT,0.05);});
+ for(let i=0;i<LOOP_BEATS;i++){mBell(t0+i*BEAT,i%2?0.012:0.022);mBell(t0+(i+.5)*BEAT,0.008);}
+}
+// "Ho ho ho": a low glottal buzz shaped by "o" vowel formants, with a breathy "h" in front of each syllable
+function hoHoHo(t){
+ if(!MUSIC.ctx)return;const c=MUSIC.ctx,out=c.createGain();out.gain.value=0.55;out.connect(MUSIC.master);
+ [0,0.38,0.76].forEach((dt,i)=>{const s=t+dt,f0=[128,120,108].at(i);
+  const h=c.createBufferSource(),hb=c.createBiquadFilter(),hg=c.createGain();h.buffer=MUSIC.noise;hb.type='bandpass';hb.frequency.value=1100;hb.Q.value=1.2;
+  h.connect(hb);hb.connect(hg);hg.connect(out);hg.gain.setValueAtTime(0,s);hg.gain.linearRampToValueAtTime(0.25,s+0.03);hg.gain.exponentialRampToValueAtTime(0.001,s+0.1);h.start(s);h.stop(s+0.12);
+  const o=c.createOscillator(),vib=c.createOscillator(),vg=c.createGain(),g=c.createGain();
+  o.type='sawtooth';o.frequency.setValueAtTime(f0*1.06,s+0.05);o.frequency.exponentialRampToValueAtTime(f0*0.9,s+0.32);
+  vib.frequency.value=5.5;vg.gain.value=2.5;vib.connect(vg);vg.connect(o.frequency);
+  [[430,1,7],[800,0.55,8],[2600,0.08,10]].forEach(([fr,gn,q])=>{const b=c.createBiquadFilter(),bg=c.createGain();b.type='bandpass';b.frequency.value=fr;b.Q.value=q;bg.gain.value=gn*3;o.connect(b);b.connect(bg);bg.connect(g);});
+  g.connect(out);g.gain.setValueAtTime(0,s+0.05);g.gain.linearRampToValueAtTime(0.9,s+0.1);g.gain.setValueAtTime(0.9,s+0.2);g.gain.exponentialRampToValueAtTime(0.001,s+0.38);
+  o.start(s+0.05);vib.start(s+0.05);o.stop(s+0.42);vib.stop(s+0.42);});
+}
+function mTick(){
+ if(!MUSIC.on||!MUSIC.ctx||MUSIC.ctx.state!=='running')return;
+ const now=MUSIC.ctx.currentTime;
+ if(now>MUSIC.next-1.5){const t0=Math.max(MUSIC.next,now+0.1);mLoop(t0);MUSIC.loops++;
+  const end=t0+LOOP_BEATS*BEAT;if(MUSIC.loops===1||Math.random()<0.6)hoHoHo(end+2.5);MUSIC.next=end+REST;}
+}
+function mSet(on,save){
+ MUSIC.on=on;$('musicBtn').classList.toggle('on',on);$('musicBtn').setAttribute('aria-pressed',on);
+ if(save){try{localStorage.setItem('wt-music',on?'1':'0')}catch(e){}}
+ if(on){mInit();if(!MUSIC.ctx)return;MUSIC.ctx.resume().then(()=>{MUSIC.master.gain.cancelScheduledValues(MUSIC.ctx.currentTime);MUSIC.master.gain.setValueAtTime(0.8,MUSIC.ctx.currentTime);if(MUSIC.next<MUSIC.ctx.currentTime)MUSIC.next=MUSIC.ctx.currentTime+0.2;mTick();});clearInterval(MUSIC.timer);MUSIC.timer=setInterval(mTick,500);}
+ else{clearInterval(MUSIC.timer);if(MUSIC.ctx)MUSIC.ctx.suspend();}
+}
+$('musicBtn').onclick=()=>{mSet(!MUSIC.on,true);toast(MUSIC.on?'🎵 เปิดเพลงแล้ว':'ปิดเพลงแล้ว');};
+document.addEventListener('visibilitychange',()=>{if(!MUSIC.ctx)return;if(document.visibilityState==='hidden')MUSIC.ctx.suspend();else if(MUSIC.on)MUSIC.ctx.resume();});
+// browsers only allow sound after a tap: if the person turned music on before, start it on their first tap
+try{if(localStorage.getItem('wt-music')==='1'){const go=e=>{if(e.target.closest&&e.target.closest('#musicBtn'))return;document.removeEventListener('pointerdown',go,true);if(!MUSIC.on)mSet(true,false);};document.addEventListener('pointerdown',go,true);}}catch(e){}
 
 /* ---------- Snow & motion ---------- */
 let flakes='';for(let i=0;i<34;i++){const s=3+(i%4)*1.5;flakes+=`<i class="flake" style="left:${(i*29)%100}%;width:${s}px;height:${s}px;animation-duration:${8+(i%7)*1.6}s;animation-delay:-${(i*1.3)%12}s;opacity:${.45+(i%3)*.2}"></i>`;}
