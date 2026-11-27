@@ -470,7 +470,6 @@ function confirmSanta(id){const w=byId(id);
  <button class="btn red" id="yes">Yes, I’ll be Santa!</button><button class="btn ghost" id="no">ยังก่อน</button>`);
  $('no').onclick=closeSheet;
  $('yes').onclick=()=>busy($('yes'),()=>rpc('claim_wish',{p_wish:id})).then(async r=>{closeSheet();await refresh();
-  if(MUSIC.on&&MUSIC.ctx)hoHoHo(MUSIC.ctx.currentTime+0.05);
   celebrate(['🧦','✨','🎅'],'You are a Santa now!',`ภารกิจของคุณ: ${r.recipient} · ${r.room}`,()=>openMission(r.claim_id));}).catch(()=>{});
 }
 function getSteps(cid){try{return JSON.parse(localStorage.getItem('wt-steps-'+cid))||[false,false,false,false]}catch(e){return [false,false,false,false]}}
@@ -807,7 +806,7 @@ function mTick(){
  if(!MUSIC.on||!MUSIC.ctx||MUSIC.ctx.state!=='running')return;
  const now=MUSIC.ctx.currentTime;
  if(now>MUSIC.next-1.5){const t0=Math.max(MUSIC.next,now+0.1);mLoop(t0);MUSIC.loops++;
-  const end=t0+LOOP_BEATS*BEAT;if(MUSIC.loops===1||Math.random()<0.6)hoHoHo(end+2.5);MUSIC.next=end+REST;}
+  const end=t0+LOOP_BEATS*BEAT;MUSIC.next=end+REST;}
 }
 function mSet(on,save){
  MUSIC.on=on;$('musicBtn').classList.toggle('on',on);$('musicBtn').setAttribute('aria-pressed',on);
