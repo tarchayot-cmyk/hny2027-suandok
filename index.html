@@ -95,6 +95,10 @@ button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outlin
 .sheet,.toast,.counter,.card,.row{color-scheme:light}
 .sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:520px;max-height:90vh;overflow:auto;transform:translate(-50%,105%);transition:transform .28s ease;z-index:31;color:var(--ink);background:radial-gradient(circle at 20% 10%,#fffaf0,transparent 60%),var(--paper);border-radius:22px 22px 0 0;padding:10px 18px 28px}
 .sheet.on{transform:translate(-50%,0)}
+.sheet-top{position:sticky;top:-10px;z-index:2;margin:-10px -18px 0;padding:10px 18px 4px;background:var(--paper);display:flex;justify-content:center}
+.sheet-x{position:absolute;right:12px;top:8px;width:44px;height:44px;border-radius:22px;background:var(--paper2);color:var(--ink);display:grid;place-items:center}
+.sheet-x:active{transform:scale(.94)}
+.sheet h3{padding-right:44px}
 .grab{width:44px;height:5px;border-radius:3px;background:#d9c8a6;margin:0 auto 10px}
 .sheet h3{font:700 22px/1.25 Mali,cursive;margin:6px 0 8px;color:var(--pine)}
 .sheet p{margin:6px 0}
@@ -253,7 +257,7 @@ textarea{width:100%;min-height:110px;border-radius:12px;border:2px solid var(--p
 </nav>
 
 <div class="backdrop" id="backdrop"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="sheet-top"><div class="grab"></div><button class="sheet-x" id="sheetX" aria-label="ปิด"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="sheetBody"></div></div>
 <div class="cele" id="cele"><div><div class="seq" id="celeSeq"></div><h2 id="celeT"></h2><p id="celeM"></p><button class="btn red" id="celeOk">เยี่ยมเลย ❤️</button></div></div>
 <div class="toast" id="toast"></div>
 <div class="snowlayer" id="snow"></div>
@@ -376,6 +380,7 @@ function badge(){const u=NT.filter(x=>!x.read_at).length;$('badge').textContent=
 function openSheet(html){$('sheetBody').innerHTML=html;$('sheet').classList.add('on');$('backdrop').classList.add('on');$('sheet').scrollTop=0;}
 function closeSheet(){$('sheet').classList.remove('on');$('backdrop').classList.remove('on');}
 $('backdrop').addEventListener('click',closeSheet);
+$('sheetX').addEventListener('click',closeSheet);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2800);}
 let celeNext=null;
