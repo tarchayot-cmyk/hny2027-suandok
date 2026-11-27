@@ -314,7 +314,7 @@ const TYPES={gift:{em:'🎁',name:'ของขวัญ',desc:'ของจร�
 const EXPLAIN={
  gift:['🎁 ของขวัญจริง · ต้องมี Santa 1 คน',['กด Become Santa เพื่อรับเป็นภารกิจของคุณ (พร้อมกันได้ไม่เกิน 2 ภารกิจ)','หลังกด จะเห็นชื่อเล่นและห้องของผู้ขอ','ซื้อของตามที่ขอ งบเป็นแค่แนวทาง แล้วเดินไปมอบเองภายใน 31 ธ.ค.','มอบแล้ว ติ๊ก Step 3 แล้วกด Gift Delivered']],
  card:['💌 การ์ดอวยพรจริง · ต้องมี Santa 1 คน',['กด Become Santa เพื่อรับเป็นภารกิจของคุณ','หลังกด จะเห็นชื่อเล่นและห้องของผู้ขอ','หาการ์ด เขียนอวยพรด้วยลายมือ แล้วเดินไปมอบเองภายใน 31 ธ.ค.','ไม่ต้องซื้อของขวัญ แค่การ์ดก็พอ']],
- blessing:['✨ คำอวยพร · ใครก็อวยพรได้ ไม่ต้องรับภารกิจ',['พิมพ์คำอวยพรส่งให้เจ้าของได้เลย คนละ 1 ข้อความ','ไม่ต้องซื้อของ ไม่ต้องเดินไปมอบ','เจ้าของได้รับแจ้งเตือนทันที · ติ๊ก “ไม่ระบุชื่อ” ได้ถ้าอยากเป็นความลับ']]};
+ blessing:['✨ คำอวยพร · ใครก็อวยพรได้ ไม่ต้องรับภารกิจ',['พิมพ์คำอวยพรส่งให้เจ้าของได้เลย คนละ 1 ข้อความ (แก้ไขหรือลบทีหลังได้)','ไม่ต้องซื้อของ ไม่ต้องเดินไปมอบ','เจ้าของได้รับแจ้งเตือนทันที · ติ๊ก “ไม่ระบุชื่อ” ได้ถ้าอยากเป็นความลับ']]};
 const explainHtml=t=>`<div class="explain"><b>${EXPLAIN[t][0]}</b><ul>${EXPLAIN[t][1].map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
 const CATS=['📚 Book','🧸 Toy / Cute','☕ Drinkware','🎨 Art','🍫 Snack','🎁 Surprise','❤️ Anything'];
 const BUDGETS=['Under ฿300','฿300–500','฿500–1,000','Surprise me'];
@@ -325,7 +325,7 @@ const ERR={MSG_EMPTY:'พิมพ์ข้อความก่อนนะ',MS
  WISH_LIMIT:'คุณแขวน Wish ประเภทนี้ไว้แล้ว',WISHES_CLOSED:'ปิดรับ Wish ใหม่แล้ว (ถึง 25 ธ.ค.)',EVENT_CLOSED:'กิจกรรมปิดแล้ว (ถึง 31 ธ.ค.)',MISSION_LIMIT:'คุณมีภารกิจที่ยังไม่เสร็จครบ 2 ภารกิจแล้ว',
  ALREADY_CLAIMED:'มี Santa ใจดีรับไปแล้ว ลองเลือกใบอื่นนะ',OWN_WISH:'Wish นี้เป็นของคุณเอง',CLAIM_NOT_ACTIVE:'ภารกิจนี้ไม่อยู่ในสถานะที่ทำรายการได้แล้ว',WISH_NOT_THANKABLE:'Wish นี้ขอบคุณไปแล้วหรือยังไม่มี Santa',
  ALREADY_BLESSED:'คุณอวยพร Wish นี้ไปแล้ว',WISH_LOCKED:'Wish นี้มี Santa แล้ว แก้ไขหรือลบไม่ได้',WISH_NOT_FOUND:'ไม่พบ Wish นี้',NOT_LOGGED_IN:'กรุณาเข้าสู่ระบบอีกครั้ง',
- NICK_TAKEN:'ชื่อนี้ในห้องนี้มีคนใช้แล้ว',PIN_FORMAT:'PIN ต้องเป็นตัวเลข 4 หลัก',NICK_INVALID:'ชื่อเล่นยาว 1–30 ตัวอักษร',ROOM_INVALID:'เลือกห้องยา/หน่วยงาน',STOCKING_INVALID:'เลือกลายถุงเท้า'};
+ NICK_TAKEN:'ชื่อนี้ในห้องนี้มีคนใช้แล้ว',PIN_FORMAT:'PIN ต้องเป็นตัวเลข 4 หลัก',NICK_INVALID:'ชื่อเล่นยาว 1–30 ตัวอักษร',ROOM_INVALID:'เลือกห้องยา/หน่วยงาน',STOCKING_INVALID:'เลือกลายถุงเท้า',BLESSING_NOT_FOUND:'ไม่พบคำอวยพรของคุณ'};
 function errMsg(e){const m=(e&&(e.message||e.error_description))||String(e);for(const k in ERR)if(m.includes(k))return ERR[k];if(/anonymous/i.test(m))return 'ระบบยังไม่เปิดให้เข้าใช้ (Admin: เปิด Anonymous sign-ins ใน Supabase)';if(/fetch|network/i.test(m))return 'เชื่อมต่อไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';return 'เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะ';}
 async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args||{});if(error)throw error;return data;}
 
@@ -401,7 +401,19 @@ async function busy(btn,fn){if(btn){btn.disabled=true;btn._t=btn.innerHTML;btn.i
  try{return await fn();}catch(e){toast(errMsg(e));if(/ALREADY_CLAIMED|CLAIM_NOT_ACTIVE|WISH_LOCKED|NOT_LOGGED_IN/.test(e.message||''))refresh().catch(()=>{});throw e;}
  finally{if(btn&&btn.isConnected){btn.disabled=false;btn.innerHTML=btn._t;}}}
 const statusPill=s=>({OPEN:'<span class="pill wait">Looking for a Santa</span>',CLAIMED:'<span class="pill ok">🎅 Santa Found!</span>',GIFTED:'<span class="pill ok">🎁 Gifted!</span>',THANKED:'<span class="pill ok">❤️ Wish fulfilled</span>'}[s]);
-function blessHtml(list){return list.length?list.map(b=>`<div class="bless">${esc(b.message)}<small>${esc(b.sender||'ไม่ระบุชื่อ')}</small></div>`).join(''):'<p class="hint">ยังไม่มีใครอวยพร</p>';}
+function blessHtml(list){return list.length?list.map(b=>`<div class="bless" ${b.is_mine?'style="outline:2px solid #f0bd4f"':''}>${esc(b.message)}<small>${esc(b.sender||'ไม่ระบุชื่อ')}${b.is_mine?' · ของคุณ':''}</small></div>`).join(''):'<p class="hint">ยังไม่มีใครอวยพร</p>';}
+function myBlessing(id,b){
+ $('myB').innerHTML=`<div class="lbl">✏️ คำอวยพรของคุณ</div><p class="hint">คนละ 1 ข้อความต่อ Wish · แก้ไขหรือลบได้ตลอด</p>
+ <textarea id="ebTxt" maxlength="150">${esc(b.message)}</textarea><div class="count" id="ebCnt">${b.message.length}/150</div><div class="err" id="ebErr"></div>
+ <label class="hint" style="display:flex;gap:8px;align-items:center;min-height:40px"><input type="checkbox" id="ebAnon" style="width:20px;height:20px" ${b.is_anonymous?'checked':''}> ไม่ระบุชื่อ</label>
+ <button class="btn red" id="ebSave">💾 บันทึกการแก้ไข</button><button class="report" id="ebDel">ลบคำอวยพรของฉัน</button>`;
+ bindText('ebTxt','ebCnt');
+ $('ebSave').onclick=()=>{const v=$('ebTxt').value.trim(),er=check(v);if(er){$('ebErr').textContent=er;return;}
+  busy($('ebSave'),()=>rpc('update_blessing',{p_wish:id,p_message:v,p_anonymous:$('ebAnon').checked})).then(()=>{toast('แก้ไขคำอวยพรแล้ว ✨');openWish(id);}).catch(()=>{});};
+ $('ebDel').onclick=()=>{openSheet(`<h3>ลบคำอวยพรของคุณ?</h3><p>ข้อความ “${esc(b.message)}” จะหายไปจาก Wish นี้ แล้วคุณเขียนใหม่ได้</p><button class="btn red" id="dbY">ลบ</button><button class="btn ghost" id="dbN">เก็บไว้</button>`);
+  $('dbN').onclick=()=>openWish(id);
+  $('dbY').onclick=()=>busy($('dbY'),()=>rpc('delete_blessing',{p_wish:id})).then(async()=>{await refresh();toast('ลบคำอวยพรแล้ว');openWish(id);}).catch(()=>{});};
+}
 
 /* ---------- Validation (server checks again) ---------- */
 function check(v){if(!v)return ERR.MSG_EMPTY;if(v.length>150)return ERR.MSG_TOO_LONG;
@@ -418,7 +430,7 @@ function openWish(id){const w=byId(id);if(!w)return;
  if(w.type==='gift')body+=`<div><span class="pill">${esc(w.cat)}</span><span class="pill">🎁 ${esc(w.budget)}</span></div><p class="hint">งบเป็นแนวทาง ไม่ใช่ข้อบังคับ</p>`;
  if(w.type==='blessing'){
   body+=`<div class="lbl">คำอวยพร (${w.bc})</div><div id="bList"><p class="hint"><span class="spin"></span></p></div>`;
-  if(w.bm)body+=`<p class="hint">คุณอวยพร Wish นี้แล้ว ขอบคุณนะ ❤️</p>`;
+  if(w.bm)body+=`<div id="myB"><p class="hint"><span class="spin"></span></p></div>`;
   else body+=`<div class="lbl">เขียนคำอวยพร</div><div class="chips" id="qb">${QUICKB.map(q=>`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>
   <textarea id="bTxt" maxlength="150" placeholder="พิมพ์คำอวยพรของคุณ"></textarea><div class="count" id="bCnt">0/150</div><div class="err" id="bErr"></div>
   <label class="hint" style="display:flex;gap:8px;align-items:center;min-height:40px"><input type="checkbox" id="anon" style="width:20px;height:20px"> ไม่ระบุชื่อ</label>
@@ -429,7 +441,7 @@ function openWish(id){const w=byId(id);if(!w)return;
  openSheet(body);
  $('rep').onclick=()=>reportWish(id);
  if($('become'))$('become').onclick=()=>confirmSanta(id);
- if(w.type==='blessing')rpc('get_wish_blessings',{p_wish:id}).then(l=>{if($('bList'))$('bList').innerHTML=blessHtml(l||[]);}).catch(()=>{});
+ if(w.type==='blessing')rpc('get_wish_blessings',{p_wish:id}).then(l=>{if($('bList'))$('bList').innerHTML=blessHtml(l||[]);const mine=(l||[]).find(b=>b.is_mine);if(mine&&$('myB'))myBlessing(id,mine);}).catch(()=>{});
  if($('bSend')){bindText('bTxt','bCnt');
   $('qb').onclick=e=>{const q=e.target.closest('[data-q]');if(q){$('bTxt').value=q.dataset.q;$('bTxt').dispatchEvent(new Event('input'));}};
   $('bSend').onclick=()=>{const v=$('bTxt').value.trim(),er=check(v);if(er){$('bErr').textContent=er;return;}
