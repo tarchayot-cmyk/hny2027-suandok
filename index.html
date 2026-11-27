@@ -102,6 +102,9 @@ button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outlin
 .explain{background:#fff;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;line-height:1.5}
 .explain b{display:block;font-size:15px;color:var(--pine);margin-bottom:2px}
 .explain ul{margin:0;padding-left:18px}.explain li{margin:2px 0}
+.wgroup{background:#fff;border-radius:16px;padding:12px 14px;margin:10px 0}
+.wgroup>b{font:700 18px Mali,cursive;color:var(--pine)}.wgroup>p{margin:4px 0 2px;font-size:14px;line-height:1.5;color:var(--muted)}
+.wgroup .types{margin:8px 0 4px}.wgroup .type{background:var(--paper);}
 .grab{width:44px;height:5px;border-radius:3px;background:#d9c8a6;margin:0 auto 10px}
 .sheet h3{font:700 22px/1.25 Mali,cursive;margin:6px 0 8px;color:var(--pine)}
 .sheet p{margin:6px 0}
@@ -307,7 +310,7 @@ document.getElementById('sprite').innerHTML=[
 ].join('');
 const use=(st,w,h)=>`<svg viewBox="0 0 48 60" width="${w}" height="${h}" aria-hidden="true"><use href="#st-${st}"/></svg>`;
 
-const TYPES={gift:{em:'🎁',name:'ของขวัญ',desc:'Santa 1 คนซื้อของจริงตามที่ขอ แล้วเดินไปมอบให้ถึงห้อง · ชื่อคุณเปิดให้เห็นหลังมีคนรับเป็น Santa'},card:{em:'💌',name:'การ์ดอวยพร',desc:'Santa 1 คนหาการ์ดจริง เขียนอวยพรด้วยลายมือ แล้วเดินไปมอบให้ · ชื่อคุณเปิดให้เห็นหลังมีคนรับเป็น Santa'},blessing:{em:'✨',name:'คำอวยพร',desc:'เพื่อน ๆ พิมพ์คำอวยพรส่งให้คุณได้หลายคน ไม่ต้องซื้อของ · ชื่อคุณแสดงบนถุงเท้าเลย'}};
+const TYPES={gift:{em:'🎁',name:'ของขวัญ',desc:'ของจริง Santa ซื้อแล้วเดินไปมอบให้ถึงห้อง'},card:{em:'💌',name:'การ์ดอวยพร',desc:'การ์ดจริง Santa เขียนด้วยลายมือแล้วนำไปมอบให้'},blessing:{em:'✨',name:'คำอวยพร',desc:'เพื่อน ๆ พิมพ์คำอวยพรส่งให้คุณได้หลายคน'}};
 const EXPLAIN={
  gift:['🎁 ของขวัญจริง · ต้องมี Santa 1 คน',['กด Become Santa เพื่อรับเป็นภารกิจของคุณ (พร้อมกันได้ไม่เกิน 2 ภารกิจ)','หลังกด จะเห็นชื่อเล่นและห้องของผู้ขอ','ซื้อของตามที่ขอ งบเป็นแค่แนวทาง แล้วเดินไปมอบเองภายใน 31 ธ.ค.','มอบแล้ว ติ๊ก Step 3 แล้วกด Gift Delivered']],
  card:['💌 การ์ดอวยพรจริง · ต้องมี Santa 1 คน',['กด Become Santa เพื่อรับเป็นภารกิจของคุณ','หลังกด จะเห็นชื่อเล่นและห้องของผู้ขอ','หาการ์ด เขียนอวยพรด้วยลายมือ แล้วเดินไปมอบเองภายใน 31 ธ.ค.','ไม่ต้องซื้อของขวัญ แค่การ์ดก็พอ']],
@@ -410,7 +413,7 @@ function bindText(t,c){$(t).addEventListener('input',()=>{$(c).textContent=$(t).
 function openWish(id){const w=byId(id);if(!w)return;
  if(w.mine)return openMine(id);
  const t=TYPES[w.type];
- let body=`<div class="preview">${use(w.st,84,106)}<div><div class="hint">${t.em} ${t.name}</div><h3 style="margin:2px 0">${w.who?`${t.em} Wish ของ ${esc(w.who)}`:`${t.em} Someone’s Christmas Wish`}</h3>${w.who?`<div style="font-weight:600">📍 ${esc(w.room)}</div>`:'<div class="meta">🔒 ชื่อผู้ขอจะแสดงหลังกด Become Santa</div>'}<div class="meta">${daysTxt(w)}</div></div></div>
+ let body=`<div class="preview">${use(w.st,84,106)}<div><div class="hint">${t.em} ${t.name}</div><h3 style="margin:2px 0">${w.who?`${t.em} Wish ของ ${esc(w.who)}`:`${t.em} Someone’s Christmas Wish`}</h3>${w.who?`<div style="font-weight:600">📍 ${esc(w.room)}</div>`:(w.type==='blessing'?'<div class="meta">🙈 ผู้ขอเลือกไม่แสดงชื่อ</div>':'<div class="meta">🔒 ชื่อผู้ขอจะแสดงหลังกด Become Santa</div>')}<div class="meta">${daysTxt(w)}</div></div></div>
  <div class="paper-note">“${esc(w.msg)}”</div>${explainHtml(w.type)}`;
  if(w.type==='gift')body+=`<div><span class="pill">${esc(w.cat)}</span><span class="pill">🎁 ${esc(w.budget)}</span></div><p class="hint">งบเป็นแนวทาง ไม่ใช่ข้อบังคับ</p>`;
  if(w.type==='blessing'){
@@ -502,11 +505,14 @@ function thankYou(id){
 
 /* ---------- Make a Wish ---------- */
 const hasMine=k=>k==='blessing'?ME.has_blessing_wish:ME.has_gift_wish;
-function startMake(){D={step:1,type:null,msg:'',cat:CATS.at(6),budget:BUDGETS.at(0),st:1};makeStep();}
+function startMake(){D={step:1,type:null,msg:'',cat:CATS.at(6),budget:BUDGETS.at(0),st:1,anon:false};makeStep();}
 function dots(){return `<div class="dots">${[1,2,3,4].map(i=>`<i class="${i===D.step?'on':''}"></i>`).join('')}</div>`;}
 function makeStep(){
  if(D.step===1){
-  openSheet(`${dots()}<h3>🎁 Make a Wish</h3><p class="hint">แขวนได้คนละ 2 ใบ: ของขวัญหรือการ์ด 1 ใบ + คำอวยพร 1 ใบ</p><div class="types">${Object.entries(TYPES).map(([k,t])=>{const off=hasMine(k);return `<button class="type ${D.type===k?'on':''}" data-t="${k}" ${off?'disabled':''}><span class="em">${t.em}</span><span><b>${t.name}</b><span>${off?'คุณแขวน Wish ประเภทนี้ไว้แล้ว':t.desc}</span></span></button>`;}).join('')}</div>
+  const tbtn=k=>{const t=TYPES[k],off=hasMine(k);return `<button class="type ${D.type===k?'on':''}" data-t="${k}" ${off?'disabled':''}><span class="em">${t.em}</span><span><b>${t.name}</b><span>${off?'คุณแขวน Wish ประเภทนี้ไว้แล้ว':t.desc}</span></span></button>`;};
+  openSheet(`${dots()}<h3>🎁 Make a Wish</h3><p class="hint">แขวนได้คนละ 2 ใบ: ของขวัญหรือการ์ด 1 ใบ + คำอวยพร 1 ใบ</p>
+  <div class="wgroup"><b>🎁 ขอของขวัญ / การ์ดอวยพร</b><p>อยากได้อะไรในคริสต์มาสนี้ ลองขอซานต้าดูไหม ไม่แน่ อาจจะมีซานต้าใจดี ทำให้พรของคุณเป็นจริงก็ได้นะ</p><div class="types">${tbtn('gift')}${tbtn('card')}</div><p class="hint">🔒 ชื่อคุณจะเปิดให้ Santa เห็น หลังมีคนรับเป็น Santa ให้คุณ</p></div>
+  <div class="wgroup"><b>✨ ขอคำอวยพร</b><p>กำลังกลุ้มใจเรื่องไหน กำลังต้องการกำลังใจเรื่องอะไร หรือต้องการคำอวยพรหรือเปล่า ขอคำอวยพรจากเหล่าซานต้าได้นะ</p><div class="types">${tbtn('blessing')}</div><p class="hint">👤 เลือกได้ในขั้นถัดไปว่าจะแสดงชื่อหรือไม่</p></div>
   <button class="btn red" id="next" ${D.type?'':'disabled'}>ต่อไป</button>`);
   $('sheetBody').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{D.type=b.dataset.t;makeStep();});
   $('next').onclick=()=>{D.step=2;makeStep();};
@@ -515,9 +521,11 @@ function makeStep(){
   openSheet(`${dots()}<h3>${TYPES[D.type].em} เขียน Wish ของคุณ</h3><textarea id="mTxt" maxlength="150" placeholder="${gift?'เช่น อยากได้หนังสือนิยายสักเล่มครับ':D.type==='card'?'เช่น ขอการ์ดน่ารัก ๆ สักใบค่ะ':'เช่น ขอให้ปีหน้าสุขภาพแข็งแรงค่ะ'}">${esc(D.msg)}</textarea><div class="count" id="mCnt">${D.msg.length}/150</div><div class="err" id="mErr"></div>
   ${gift?`<div class="lbl">หมวด</div><div class="chips" id="cats" style="flex-wrap:wrap">${CATS.map(c=>`<button class="chip ${c===D.cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>
   <div class="lbl">งบประมาณ</div><div class="chips" id="buds" style="flex-wrap:wrap">${BUDGETS.map(b=>`<button class="chip ${b===D.budget?'on':''}" data-b="${esc(b)}">🎁 ${esc(b)}</button>`).join('')}</div><p class="hint">งบเป็นเพียงแนวทางช่วย Santa ตัดสินใจ ไม่ใช่ข้อบังคับ</p>`:''}
-  <p class="hint">ไม่ต้องใส่เบอร์โทรหรือข้อมูลส่วนตัว Santa จะเห็นแค่ชื่อเล่นและห้องยาของคุณ</p>
+  ${D.type==='blessing'?`<div class="lbl">แสดงชื่อบนถุงเท้าไหม?</div><div class="chips" id="anonC"><button class="chip ${D.anon?'':'on'}" data-an="0">👤 แสดงชื่อ</button><button class="chip ${D.anon?'on':''}" data-an="1">🙈 ไม่แสดงชื่อ</button></div><p class="hint">${D.anon?'เพื่อน ๆ จะอวยพรได้โดยไม่รู้ว่าเป็นใคร (Admin ยังเห็นชื่อเพื่อดูแลระบบ)':'ทุกคนจะเห็นชื่อเล่นและห้องของคุณบนถุงเท้า'}</p>`:''}
+  <p class="hint">ไม่ต้องใส่เบอร์โทรหรือข้อมูลส่วนตัว${D.type==='blessing'?'':' Santa จะเห็นแค่ชื่อเล่นและห้องยาของคุณ'}</p>
   <button class="btn red" id="next">เลือกลายถุงเท้า</button><button class="btn ghost" id="back">ย้อนกลับ</button>`);
   bindText('mTxt','mCnt');
+  if($('anonC'))$('anonC').onclick=e=>{const c=e.target.closest('[data-an]');if(c){D.anon=c.dataset.an==='1';D.msg=$('mTxt').value;makeStep();}};
   if(gift){$('cats').onclick=e=>{const c=e.target.closest('[data-c]');if(c){D.cat=c.dataset.c;D.msg=$('mTxt').value;makeStep();}};$('buds').onclick=e=>{const b=e.target.closest('[data-b]');if(b){D.budget=b.dataset.b;D.msg=$('mTxt').value;makeStep();}};}
   $('back').onclick=()=>{D.msg=$('mTxt').value;D.step=1;makeStep();};
   $('next').onclick=()=>{const v=$('mTxt').value.trim(),er=check(v);if(er){$('mErr').textContent=er;return;}D.msg=v;D.step=3;makeStep();};
@@ -528,10 +536,10 @@ function makeStep(){
   $('back').onclick=()=>{D.step=2;makeStep();};$('next').onclick=()=>{D.step=4;makeStep();};
  } else {
   openSheet(`${dots()}<h3>🧦 Stocking Preview</h3><div class="preview">${use(D.st,84,106)}<div class="paper-note" style="flex:1">“${esc(D.msg)}”</div></div>
-  <div>${D.type==='gift'?`<span class="pill">${esc(D.cat)}</span><span class="pill">🎁 ${esc(D.budget)}</span>`:`<span class="pill">${TYPES[D.type].em} ${TYPES[D.type].name}</span>`}</div>
+  <div>${D.type==='gift'?`<span class="pill">${esc(D.cat)}</span><span class="pill">🎁 ${esc(D.budget)}</span>`:`<span class="pill">${TYPES[D.type].em} ${TYPES[D.type].name}</span>${D.type==='blessing'?`<span class="pill">${D.anon?'🙈 ไม่แสดงชื่อ':'👤 แสดงชื่อ'}</span>`:''}`}</div>
   <button class="btn red" id="hang">Hang My Wish 🎄</button><button class="btn ghost" id="back">แก้ไข</button>`);
   $('back').onclick=()=>{D.step=3;makeStep();};
-  $('hang').onclick=()=>busy($('hang'),()=>rpc('create_wish',{p_type:D.type,p_message:D.msg,p_category:D.type==='gift'?D.cat:null,p_budget:D.type==='gift'?D.budget:null,p_stocking:D.st})).then(hang).catch(()=>{});
+  $('hang').onclick=()=>busy($('hang'),()=>rpc('create_wish',{p_type:D.type,p_message:D.msg,p_category:D.type==='gift'?D.cat:null,p_budget:D.type==='gift'?D.budget:null,p_stocking:D.st,p_anonymous:D.type==='blessing'&&D.anon})).then(hang).catch(()=>{});
  }
 }
 async function hang(id){
@@ -550,7 +558,7 @@ const FILTERS=[['all','ทั้งหมด'],['gift','🎁 ของขวั�
 function renderExplore(){
  $('filters').innerHTML=FILTERS.map(([k,l])=>`<button class="chip ${FILTER===k?'on':''}" data-f="${k}">${l}</button>`).join('');
  const list=W.filter(w=>!w.mine&&(FILTER==='all'||w.type===FILTER)&&(w.type==='blessing'||w.status==='OPEN'));
- $('exploreGrid').innerHTML=list.length?list.map(w=>`<button class="card" data-w="${w.id}">${use(w.st,44,56)}<div class="msg">“${esc(w.msg)}”</div><div><span class="pill" style="background:${w.type==='blessing'?'#fff1c7':w.type==='card'?'#fde3ec':'#fde2e0'}">${TYPES[w.type].em} ${TYPES[w.type].name}</span>${w.type==='gift'?`<span class="pill">${esc(w.cat)}</span><span class="pill">${esc(w.budget)}</span>`:''}</div>${w.who?`<div class="meta">👤 <b>${esc(w.who)}</b> · ${esc(w.room)}</div>`:'<div class="meta">🔒 ชื่อเปิดหลังกด Become Santa</div>'}<div class="meta">${daysTxt(w)}</div></button>`).join('')
+ $('exploreGrid').innerHTML=list.length?list.map(w=>`<button class="card" data-w="${w.id}">${use(w.st,44,56)}<div class="msg">“${esc(w.msg)}”</div><div><span class="pill" style="background:${w.type==='blessing'?'#fff1c7':w.type==='card'?'#fde3ec':'#fde2e0'}">${TYPES[w.type].em} ${TYPES[w.type].name}</span>${w.type==='gift'?`<span class="pill">${esc(w.cat)}</span><span class="pill">${esc(w.budget)}</span>`:''}</div>${w.who?`<div class="meta">👤 <b>${esc(w.who)}</b> · ${esc(w.room)}</div>`:(w.type==='blessing'?'<div class="meta">🙈 ไม่แสดงชื่อ</div>':'<div class="meta">🔒 ชื่อเปิดหลังกด Become Santa</div>')}<div class="meta">${daysTxt(w)}</div></button>`).join('')
   :`<div class="empty" style="grid-column:1/-1">${W.length?'ทุก Wish ในหมวดนี้มี Santa แล้ว 🎅 ลองดูหมวดอื่นนะ':'ยังไม่มี Wish บนต้นเลย เป็นคนแรกที่แขวนกันไหม 🎄'}</div>`;
 }
 $('filters').addEventListener('click',e=>{const f=e.target.closest('[data-f]');if(f){FILTER=f.dataset.f;renderExplore();}});
